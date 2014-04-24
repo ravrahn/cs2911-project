@@ -4,7 +4,7 @@
  * @author AwolGerbil
  */
 
-public class Maze {
+public interface Maze {
     /**
      * Generates a Maze
      *
