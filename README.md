@@ -1,4 +1,28 @@
-cs2911-project
+Interactive Maze Puzzle Game
 ==============
 
-Interactive Maze Puzzle Game
+You are probably familiar with mazes. Basically, a maze is a rectangular grid of positions where movement between some positions is allowed but movement is sometimes is blocked by a wall. The usual objective is to find a path through the maze from a given start position to some exit position. A basic game has only one start and one exit position, which could be anywhere in the maze. Further variations on a basic game might be to have multiple exit positions or a non-rectangular shape, to avoid certain locations or obstacles (even dynamically moving "predators"), multiple players and/or to complete intermediate tasks, such as collecting items of value along the way before reaching the exit.
+
+A basic maze can be displayed in many different ways, but the basic structure is shown below on the left (here the start is at the upper left corner and the exit is at the bottom right corner). A more fancy-looking maze such as on the right might have coloured squares, coins to collect, multiple players, etc.
+
+Solving such basic puzzles (and to some extent, competing in more complex games) is easy for computers (i.e. search algorithms) but not so easy for people. In this assignment, the aim is to construct an *interactive* maze puzzle game that provides an interesting and challenging experience. The primary requirement is not to develop an efficient problem solver, but to understand and anticipate user requirements, and to design a graphical user interface so that users of varying degrees of expertise can interact effectively with the system.
+
+#####*All programming should be done using standard Java. Do not use Java OpenGL or any similar graphics library.*
+
+In this assignment, you will work in small teams of **four**. Part of this assignment is to learn to work in groups, so you will need to formulate and plan the scope of your project. A number of questions to help you determine the initial scope are:
+* who are the intended users: are they novice, intermediate or expert, or all sorts of users (do we even understand what this means?)
+* what sort of features are basic to the application (i.e. needed by every user)?
+* what sort of features are needed by different categories of users: how can the interface handle seemingly different requirements?
+* what sort of help or hints (if any) should the system be able to provide to users (and how and when is this help given)?
+* what platforms with what form factors is the system designed to run on?
+Of course your scope will also include the basic "back-end" operations of generating new puzzles, computing solutions, etc.
+
+You will be guided by your tutor throughout this project. You should maintain an *individual* diary that contains your personal record of the project scope, team meetings, work plan (and updates), decisions taken, design documents, mock-up interfaces (on paper), timelines, revisions to the plan, integration and testing regime, etc. (but which should **only** contain information relevant to the planning and execution of the project). You will need to show this to your tutor weekly to obtain your individual marks for the project. There are no set times for producing intermediate outcomes because your project plan is subject to revision, however your tutor will advise you if your team seems to be falling behind the anticipated schedule. You will be assessed individually on the degree to which you are following good teamwork practice.
+
+The team mark is for the final product. As a team, you will demonstrate your system to **two assessors** (your tutor and one other tutor/lecturer) in the laboratory session in Week 13. Your software will also be compiled and run on the CSE machines for further manual testing. Assessment will be based on effective interaction and user interface design, as well as correctness, generality and software design (see below for details). Your team presentation should **not** be a "sales pitch": your audience are all professional Software Engineers who are experts in object-oriented design and may ask you questions about your design (you are not presenting your software to the intended users of your system). There is no one "best" solution to this assignment. What is important is to produce a working system intended for some class of users and be able to justify your design decisions.
+
+**Your submission should include two Unix executable files, `compile` and `run`.** When `compile` is called, your program should be compiled from the command line using `javac` commands. When `run` is called, your maze game should be executed using java commands. Make sure that all resource files (such as sounds and images) are loaded correctly, and that any files used by your program are saved locally and can be reloaded (for example, do not save such files in the user's home directory or in a parent directory).
+
+**It is an important part of this project for you (as a team) to manage your own time. You need to start early and plan your work carefully: do not be overly optimistic about what you can achieve (remember you are all doing other courses with other assignments). Plan for things to take longer than you think, and always have a "Plan B" in case "Plan A" fails. It is essential for you as a team to monitor your own progress and it is perfectly reasonable (often necessary) to revise the plan as time passes. One idea is to plan to develop a basic but fully working system and then extend the basic system with additional features according to the time available.**
+
+######Warning: There are many web sites about maze puzzle generation and solution: check carefully any information you use from these sites. In addition, there are several Java maze puzzle games available online, but these are typically very poorly designed and the user interaction with the systems (if any) is often also poor. So do not be tempted to replicate these systems exactly. *Do not under any circumstances use code downloaded from the Internet.*
