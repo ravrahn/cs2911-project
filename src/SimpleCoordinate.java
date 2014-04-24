@@ -4,6 +4,25 @@
  * @author Gabriel
  */
 public class SimpleCoordinate implements Coordinate {
+	public SimpleCoordinate(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+	
+	@Override
+	public String toString() {
+		return (x + " " + y);
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof Coordinate) {
+			Coordinate c = (Coordinate) o;
+			return (x == c.getX() && y == c.getY());
+		}
+		return false;
+	}
+	
 	/* (non-Javadoc)
 	 * @see Coordinate#getX()
 	 */

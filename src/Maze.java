@@ -4,19 +4,7 @@
  * @author AwolGerbil
  */
 
-public interface Maze {
-    /**
-     * Generates a Maze
-     *
-     * @param height
-     *            The height of the Maze
-     * @param width
-     *            The width of the Maze
-     * 
-     * @return The resulting Maze
-     */
-    public Maze generateMaze(int width, int height);
-    
+public interface Maze {    
     /**
      * Returns whether there is a wall above given Coordinate
      * 
