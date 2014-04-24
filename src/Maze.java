@@ -15,7 +15,7 @@ public interface Maze {
      * 
      * @return The resulting Maze
      */
-    public Maze generateMaze(int height, int width);
+    public Maze generateMaze(int width, int height);
     
     /**
      * Returns whether there is a wall above given Coordinate
@@ -23,7 +23,7 @@ public interface Maze {
      * @param c
      *            The Coordinate
      * 
-     * @return whether there is a wall above the Coordinate
+     * @return Whether there is a wall above the Coordinate
      */
     public boolean wallUp(Coordinate c);
     
@@ -33,7 +33,7 @@ public interface Maze {
      * @param c
      *            The Coordinate
      * 
-     * @return whether there is a wall to the right of the Coordinate
+     * @return Whether there is a wall to the right of the Coordinate
      */
     public boolean wallRight(Coordinate c);
     
@@ -43,7 +43,7 @@ public interface Maze {
      * @param c
      *            The Coordinate
      * 
-     * @return whether there is a wall below the Coordinate
+     * @return Whether there is a wall below the Coordinate
      */
     public boolean wallDown(Coordinate c);
     
@@ -53,7 +53,21 @@ public interface Maze {
      * @param c
      *            The Coordinate
      * 
-     * @return whether there is a wall to the left of the Coordinate
+     * @return Whether there is a wall to the left of the Coordinate
      */
     public boolean wallLeft(Coordinate c);
+    
+    /**
+     * Returns the width of the maze
+     * 
+     * @return The width of the maze
+     */
+    public int getWidth();
+    
+    /**
+     * Returns the height of the maze
+     * 
+     * @return The height of the maze
+     */
+    public int getHeight();
 }
