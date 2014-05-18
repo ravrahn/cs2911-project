@@ -27,8 +27,6 @@ public class SimpleMaze implements Maze {
 			}
 		}
 		
-		drawMaze();
-		
 		Random random = new Random();
 		boolean[][] inMaze = new boolean[width][height];
 		Coordinate c = new SimpleCoordinate(0, 0);
@@ -40,10 +38,7 @@ public class SimpleMaze implements Maze {
 		int edge;
 		
 		while (!openSet.isEmpty()) {
-			drawMaze();
-			System.out.println(openSet);
 			c = openSet.remove(random.nextInt(openSet.size()));
-			System.out.println("c: " + c);
 			inMaze[c.getX()][c.getY()] = true;
 			
 			// Array of possible edges to add
@@ -53,9 +48,9 @@ public class SimpleMaze implements Maze {
 			for (int i = 0; i < 4; i++) cellOptions.add(i);
 			
 			// Consider top edge if possible
-			if (c.getY() + 1 >= height) {
+			if (c.getY() - 1 < 0) {
 				cellOptions.remove(TOP);
-			} else if (inMaze[c.getX()][c.getY() + 1]) {
+			} else if (inMaze[c.getX()][c.getY() - 1]) {
 				edgeOptions.add(TOP);
 				cellOptions.remove(TOP);
 			}
@@ -67,9 +62,9 @@ public class SimpleMaze implements Maze {
 				cellOptions.remove(RIGHT);
 			}
 			// Consider bottom edge if possible
-			if (c.getY() - 1 < 0) {
+			if (c.getY() + 1 >= height) {
 				cellOptions.remove(BOT);
-			} else if (inMaze[c.getX()][c.getY() - 1]) {
+			} else if (inMaze[c.getX()][c.getY() + 1]) {
 				edgeOptions.add(BOT);
 				cellOptions.remove(BOT);
 			}
@@ -81,19 +76,17 @@ public class SimpleMaze implements Maze {
 				cellOptions.remove(LEFT);
 			}
 			
-			System.out.println("edges: " + edgeOptions.size() + " cells: " + cellOptions.size());
-			
 			if (edgeOptions.size() > 0) {
 				edge = edgeOptions.get(random.nextInt(edgeOptions.size()));
 				edges[edge][c.getX()][c.getY()] = false;
 				// Lots of hax
-				edges[(edge + 2) % 4][c.getX() + (int) Math.round(Math.sin(edge * Math.PI / 2))][c.getY() + (int) Math.round(Math.cos(edge * Math.PI / 2))] = false;
+				edges[(edge + 2) % 4][c.getX() + (int) Math.round(Math.sin(edge * Math.PI / 2))][c.getY() - (int) Math.round(Math.cos(edge * Math.PI / 2))] = false;
 			}
 			
 			// Expand
 			for (Integer direction : cellOptions) {
 				// Lots of hax again
-				Coordinate test = new SimpleCoordinate(c.getX() + (int) Math.round(Math.sin(direction * Math.PI / 2)), c.getY() + (int) Math.round(Math.cos(direction * Math.PI / 2)));
+				Coordinate test = new SimpleCoordinate(c.getX() + (int) Math.round(Math.sin(direction * Math.PI / 2)), c.getY() - (int) Math.round(Math.cos(direction * Math.PI / 2)));
 				if (!openSet.contains(test)) {
 					openSet.add(test);
 				}
@@ -106,7 +99,7 @@ public class SimpleMaze implements Maze {
 	 */
 	@Override
 	public boolean wallUp(Coordinate c) throws IllegalArgumentException {
-		if (c.getX() < 0 || c.getX() > width || c.getY() < 0 || c.getY() > height) {
+		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
 			throw new IllegalArgumentException("Outside bounds of maze");
 		}
 		return edges[TOP][c.getX()][c.getY()];
@@ -117,7 +110,7 @@ public class SimpleMaze implements Maze {
 	 */
 	@Override
 	public boolean wallRight(Coordinate c) throws IllegalArgumentException {
-		if (c.getX() < 0 || c.getX() > width || c.getY() < 0 || c.getY() > height) {
+		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
 			throw new IllegalArgumentException("Outside bounds of maze");
 		}
 		return edges[RIGHT][c.getX()][c.getY()];
@@ -128,7 +121,7 @@ public class SimpleMaze implements Maze {
 	 */
 	@Override
 	public boolean wallDown(Coordinate c) throws IllegalArgumentException {
-		if (c.getX() < 0 || c.getX() > width || c.getY() < 0 || c.getY() > height) {
+		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
 			throw new IllegalArgumentException("Outside bounds of maze");
 		}
 		return edges[BOT][c.getX()][c.getY()];
@@ -139,7 +132,7 @@ public class SimpleMaze implements Maze {
 	 */
 	@Override
 	public boolean wallLeft(Coordinate c) throws IllegalArgumentException {
-		if (c.getX() < 0 || c.getX() > width || c.getY() < 0 || c.getY() > height) {
+		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
 			throw new IllegalArgumentException("Outside bounds of maze");
 		}
 		return edges[LEFT][c.getX()][c.getY()];
@@ -162,41 +155,41 @@ public class SimpleMaze implements Maze {
 	}
 	
 	public void drawMaze() {
-		for (int y = height - 1; y >= 0; y--) {
+		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				System.out.print("X");
+				System.out.print("+");
 				if (this.wallUp(new SimpleCoordinate(x, y))) {
-					System.out.print("X");
+					System.out.print("-");
 				} else {
 					System.out.print(" ");
 				}
 			}
-			System.out.println("X");
+			System.out.println("+");
 			
 			for (int x = 0; x < width; x++) {
 				if (this.wallLeft(new SimpleCoordinate(x, y))) {
-					System.out.print("X");
+					System.out.print("|");
 				} else {
 					System.out.print(" ");
 				}
 				System.out.print(" ");
 			}
 			if (this.wallRight(new SimpleCoordinate(width - 1, y))) {
-				System.out.println("X");
+				System.out.println("|");
 			} else {
 				System.out.println(" ");
 			}
 		}
 		
 		for (int x = 0; x < width; x++) {
-			System.out.print("X");
-			if (this.wallDown(new SimpleCoordinate(x, 0))) {
-				System.out.print("X");
+			System.out.print("+");
+			if (this.wallDown(new SimpleCoordinate(x, height - 1))) {
+				System.out.print("-");
 			} else {
 				System.out.print(" ");
 			}
 		}
-		System.out.println("X");
+		System.out.println("+");
 		System.out.println();
 	}
 	

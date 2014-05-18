@@ -8,7 +8,7 @@ import org.junit.Test;
 public class SimpleMazeTester {
 	@Test
 	public void megaTest() {
-		SimpleMaze maze = new SimpleMaze(10, 10);
+		SimpleMaze maze = new SimpleMaze(20, 20);
 		maze.drawMaze();
 	}
 }
