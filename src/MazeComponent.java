@@ -20,9 +20,9 @@ public class MazeComponent extends JComponent {
 	public MazeComponent() throws IOException {
 		maze = new SimpleMaze(10, 10);
 		player = new SimpleCoordinate(0, 0);
-		wallImage = ImageIO.read(new File("google_plus.png"));
-		floorImage = ImageIO.read(new File("youtube.png"));
-		playerImage = ImageIO.read(new File("facebook.png"));
+		wallImage = ImageIO.read(new File("water.png"));
+		floorImage = ImageIO.read(new File("island_desert.png"));
+		playerImage = ImageIO.read(new File("fancy_stickman.png"));
 		
 		addKeyListener(new KeyAdapter() {
 			@Override
@@ -73,10 +73,9 @@ public class MazeComponent extends JComponent {
 				} else {
 					g2D.drawImage(floorImage, (2 * x) * imgWidth, (2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
 				}
+				g2D.drawImage(floorImage, (2 * x + 1) * imgWidth, (2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
 				if (player.equals(new SimpleCoordinate(x, y))) {
 					g2D.drawImage(playerImage, (2 * x + 1) * imgWidth, (2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
-				} else {
-					g2D.drawImage(floorImage, (2 * x + 1) * imgWidth, (2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
 				}
 			}
 			if (maze.wallRight(new SimpleCoordinate(mazeWidth - 1, y))) {
