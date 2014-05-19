@@ -49,10 +49,10 @@ public class SimpleMaze implements Maze {
 			
 			// Consider top edge if possible
 			if (c.getY() - 1 < 0) {
-				cellOptions.remove(TOP);
+				cellOptions.remove(UP);
 			} else if (inMaze[c.getX()][c.getY() - 1]) {
-				edgeOptions.add(TOP);
-				cellOptions.remove(TOP);
+				edgeOptions.add(UP);
+				cellOptions.remove(UP);
 			}
 			// Consider right edge if possible
 			if (c.getX() + 1 >= width) {
@@ -63,10 +63,10 @@ public class SimpleMaze implements Maze {
 			}
 			// Consider bottom edge if possible
 			if (c.getY() + 1 >= height) {
-				cellOptions.remove(BOT);
+				cellOptions.remove(DOWN);
 			} else if (inMaze[c.getX()][c.getY() + 1]) {
-				edgeOptions.add(BOT);
-				cellOptions.remove(BOT);
+				edgeOptions.add(DOWN);
+				cellOptions.remove(DOWN);
 			}
 			// Consider left edge if possible
 			if (c.getX() - 1 < 0) {
@@ -93,49 +93,19 @@ public class SimpleMaze implements Maze {
 			}
 		}
 	}
-
+	
 	/* (non-Javadoc)
-	 * @see Maze#wallUp(Coordinate)
+	 * @see Maze#getWall(Coordinate, int)
 	 */
 	@Override
-	public boolean wallUp(Coordinate c) throws IllegalArgumentException {
+	public boolean getWall(Coordinate c, int direction) {
 		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
 			throw new IllegalArgumentException("Outside bounds of maze");
 		}
-		return edges[TOP][c.getX()][c.getY()];
-	}
-
-	/* (non-Javadoc)
-	 * @see Maze#wallRight(Coordinate)
-	 */
-	@Override
-	public boolean wallRight(Coordinate c) throws IllegalArgumentException {
-		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
-			throw new IllegalArgumentException("Outside bounds of maze");
+		if (direction < 0 || direction > 3) {
+			throw new IllegalArgumentException("Invalid direction");
 		}
-		return edges[RIGHT][c.getX()][c.getY()];
-	}
-
-	/* (non-Javadoc)
-	 * @see Maze#wallDown(Coordinate)
-	 */
-	@Override
-	public boolean wallDown(Coordinate c) throws IllegalArgumentException {
-		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
-			throw new IllegalArgumentException("Outside bounds of maze");
-		}
-		return edges[BOT][c.getX()][c.getY()];
-	}
-
-	/* (non-Javadoc)
-	 * @see Maze#wallLeft(Coordinate)
-	 */
-	@Override
-	public boolean wallLeft(Coordinate c) throws IllegalArgumentException {
-		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
-			throw new IllegalArgumentException("Outside bounds of maze");
-		}
-		return edges[LEFT][c.getX()][c.getY()];
+		return edges[direction][c.getX()][c.getY()];
 	}
 	
 	/* (non-Javadoc)
@@ -158,7 +128,7 @@ public class SimpleMaze implements Maze {
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				System.out.print("+");
-				if (this.wallUp(new SimpleCoordinate(x, y))) {
+				if (getWall(new SimpleCoordinate(x, y), UP)) {
 					System.out.print("-");
 				} else {
 					System.out.print(" ");
@@ -167,14 +137,14 @@ public class SimpleMaze implements Maze {
 			System.out.println("+");
 			
 			for (int x = 0; x < width; x++) {
-				if (this.wallLeft(new SimpleCoordinate(x, y))) {
+				if (getWall(new SimpleCoordinate(x, y), LEFT)) {
 					System.out.print("|");
 				} else {
 					System.out.print(" ");
 				}
 				System.out.print(" ");
 			}
-			if (this.wallRight(new SimpleCoordinate(width - 1, y))) {
+			if (getWall(new SimpleCoordinate(width - 1, y), RIGHT)) {
 				System.out.println("|");
 			} else {
 				System.out.println(" ");
@@ -183,7 +153,7 @@ public class SimpleMaze implements Maze {
 		
 		for (int x = 0; x < width; x++) {
 			System.out.print("+");
-			if (this.wallDown(new SimpleCoordinate(x, height - 1))) {
+			if (getWall(new SimpleCoordinate(x, height - 1), DOWN)) {
 				System.out.print("-");
 			} else {
 				System.out.print(" ");
@@ -196,8 +166,4 @@ public class SimpleMaze implements Maze {
 	int width;
 	int height;
 	boolean[][][] edges;
-	public static final Integer TOP = 0;
-	public static final Integer RIGHT = 1;
-	public static final Integer BOT = 2;
-	public static final Integer LEFT = 3;
 }

@@ -9,6 +9,11 @@ public class SimpleCoordinate implements Coordinate {
 		this.y = y;
 	}
 	
+	public SimpleCoordinate(Coordinate c) {
+		this.x = c.getX();
+		this.y = c.getY();
+	}
+	
 	@Override
 	public String toString() {
 		return (x + " " + y);
