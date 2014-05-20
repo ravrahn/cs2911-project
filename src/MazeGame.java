@@ -1,3 +1,5 @@
+
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.IOException;
@@ -17,7 +19,7 @@ public class MazeGame {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
 
-		final Maze3DComponent scene = new Maze3DComponent();
+		final MazeComponent scene = new MazeComponent();
 		final AudioButton audioButton = new AudioButton();
 		
 		frame.add(scene, BorderLayout.CENTER);
