@@ -8,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -22,10 +23,16 @@ public class MazeComponent extends JComponent {
 	public MazeComponent() throws IOException {
 		maze = new SimpleMaze(20, 20);
 		player = new SimpleCoordinate(0, 0);
+		opponents = new LinkedList<Coordinate>();
+		for (int i=0; i<3; i++) {
+			opponents.add(new SimpleCoordinate((int)Math.floor(Math.random()*maze.getWidth()), (int)Math.floor(Math.random()*maze.getHeight())));
+		}
 		wallImage = ImageIO.read(new File("clear.png"));
 		floorImage = ImageIO.read(new File("pantone.png"));
 		playerImage = ImageIO.read(new File("player.png"));
 		hintImage = ImageIO.read(new File("red.png"));
+		opponentImage = ImageIO.read(new File("opponent.png"));
+		opponentsMove = true;
 		
 		addKeyListener(new KeyAdapter() {
 			@Override
@@ -39,6 +46,16 @@ public class MazeComponent extends JComponent {
 				} else if (e.getKeyCode() == KeyEvent.VK_LEFT && !maze.getWall(player, Maze.LEFT)) {
 					player.setX(player.getX() - 1);
 				}
+				
+				if (opponentsMove) {
+				List<Coordinate> newOpponents = new LinkedList<Coordinate>();
+					for (Coordinate opponent : opponents) {
+						opponent = Hinter.bestMove(opponent, player, new SimpleCoordinate(maze.getWidth()-1, maze.getHeight()-1), maze);				
+						newOpponents.add(opponent);
+					}
+					opponents = newOpponents;
+				}
+//				opponentsMove = !opponentsMove;
 				
 				repaint();
 			}
@@ -93,6 +110,10 @@ public class MazeComponent extends JComponent {
 				if (player.equals(new SimpleCoordinate(x, y))) {
 					g2D.drawImage(playerImage, (2 * x + 1) * imgWidth, (2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
 				}
+				// add the opponent
+				if (opponents.contains(new SimpleCoordinate(x, y))) {
+					g2D.drawImage(opponentImage, (2 * x + 1) * imgWidth, (2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
+				}
 			}
 			
 			if (maze.getWall(new SimpleCoordinate(mazeWidth - 1, y), Maze.RIGHT)) {
@@ -107,7 +128,7 @@ public class MazeComponent extends JComponent {
 				// draw the hint path
 				SimpleCoordinate here = new SimpleCoordinate(x, y);
 				if (hintPath.contains(here)) {
-					if (!player.equals(new SimpleCoordinate(x, y))) {
+					if (!player.equals(here) && !opponents.contains(here)) {
 						// put the hint tile down
 						g2D.drawImage(hintImage, (2 * x + 1) * imgWidth, (2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
 					}
@@ -144,9 +165,12 @@ public class MazeComponent extends JComponent {
 
 	private Maze maze;
 	private Coordinate player;
+	private List<Coordinate> opponents;
 	private Image wallImage;
 	private Image floorImage;
 	private Image playerImage;
 	private Image hintImage;
+	private Image opponentImage;
+	private boolean opponentsMove;
 	private static final long serialVersionUID = 1L;
 }
