@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 import org.junit.Test;
 
 /**
@@ -8,7 +10,11 @@ import org.junit.Test;
 public class SimpleMazeTester {
 	@Test
 	public void megaTest() {
-		SimpleMaze maze = new SimpleMaze(20, 20);
+		SimpleMaze maze = new SimpleMaze(5, 5);
 		maze.drawMaze();
+		ArrayList<Wall> lines = maze.toWalls();
+		for (Wall l : lines) {
+			System.out.println(l);
+		}
 	}
 }

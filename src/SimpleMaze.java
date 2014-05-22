@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -161,6 +162,116 @@ public class SimpleMaze implements Maze {
 		}
 		System.out.println("+");
 		System.out.println();
+	}
+	
+	public ArrayList<Wall> toWalls() {
+		ArrayList<Wall> walls = new ArrayList<Wall>();
+		Coordinate currCoord = new SimpleCoordinate(0, 0);
+		Point lastPoint = new Point(0, 0);
+		Point currPoint = new Point(0, 0);
+		int length = 0;
+		int currDirection = Maze.UP;
+		Point endPoint = new Point(0, 1);
+		while (!currPoint.equals(endPoint)) {
+			// Save the current Point
+			currPoint = new Point(lastPoint);
+			if (currDirection == Maze.UP) {
+				currPoint.setX(lastPoint.getX() + length);
+			} else if (currDirection == Maze.RIGHT) {
+				currPoint.setY(lastPoint.getY() + length);
+			} else if (currDirection == Maze.DOWN) {
+				currPoint.setX(lastPoint.getX() - length);
+			} else if (currDirection == Maze.LEFT) {
+				currPoint.setY(lastPoint.getY() - length);
+			}
+			
+			// If no wall up (relative to currDirection)
+			if (getWall(currCoord, currDirection)) {
+				length++;
+				
+				// If wall to right
+				if (getWall(currCoord, (currDirection + 1) % 4)) {
+					Point newPoint = new Point(lastPoint);
+					if (currDirection == Maze.UP) {
+						newPoint.setX(newPoint.getX() + length);
+					} else if (currDirection == Maze.RIGHT) {
+						newPoint.setY(newPoint.getY() + length);
+					} else if (currDirection == Maze.DOWN) {
+						newPoint.setX(newPoint.getX() - length);
+					} else if (currDirection == Maze.LEFT) {
+						newPoint.setY(newPoint.getY() - length);
+					}
+					
+					// Add line
+					walls.add(new Wall(new Line(lastPoint, newPoint), directionToColor(currDirection)));
+					// Reset points
+					lastPoint = newPoint;
+					length = 0;
+					// Rotate right
+					currDirection = (currDirection + 1) % 4;
+				} else {
+					// No wall to right
+					length++;
+					
+					// Move right
+					if (currDirection == Maze.UP) {
+						currCoord.setX(currCoord.getX() + 1);
+					} else if (currDirection == Maze.RIGHT) {
+						currCoord.setY(currCoord.getY() + 1);
+					} else if (currDirection == Maze.DOWN) {
+						currCoord.setX(currCoord.getX() - 1);
+					} else if (currDirection == Maze.LEFT) {
+						currCoord.setY(currCoord.getY() - 1);
+					}
+				}
+			} else {
+				// No wall up
+				// Add line
+				walls.add(new Wall(new Line(lastPoint, currPoint), directionToColor(currDirection)));
+				// Reset points
+				lastPoint = currPoint;
+				length = 1;
+				
+				// Move up
+				if (currDirection == Maze.UP) {
+					currCoord.setY(currCoord.getY() - 1);
+				} else if (currDirection == Maze.RIGHT) {
+					currCoord.setX(currCoord.getX() + 1);
+				} else if (currDirection == Maze.DOWN) {
+					currCoord.setY(currCoord.getY() + 1);
+				} else if (currDirection == Maze.LEFT) {
+					currCoord.setX(currCoord.getX() - 1);
+				}
+				// Rotate left
+				currDirection = (currDirection + 3) % 4;
+			}
+		}
+		if (walls.get(walls.size() - 1).getBase().getX1() == 0) {
+			walls.get(walls.size() - 1).getBase().setY2(0);
+		} else {
+			walls.add(new Wall(new Line(0, 1, 0, 0), directionToColor(Maze.LEFT)));
+		}
+		
+		return walls;
+	}
+	
+	private Color directionToColor(int direction) {
+		if (direction < 0 || direction > 3) {
+			throw new IllegalArgumentException("Invalid direction");
+		}
+		if (direction == Maze.UP) {
+			return Color.RED;
+		}
+		if (direction == Maze.RIGHT) {
+			return Color.BLUE;
+		}
+		if (direction == Maze.DOWN) {
+			return Color.YELLOW;
+		}
+		if (direction == Maze.LEFT) {
+			return Color.GREEN;
+		}
+		return Color.BLACK;
 	}
 	
 	int width;

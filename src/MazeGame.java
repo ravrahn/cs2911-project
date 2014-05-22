@@ -16,8 +16,8 @@ public class MazeGame {
 		JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
-
-		final Maze3DComponent scene = new Maze3DComponent();
+		
+		final FancyMaze3DComponent scene = new FancyMaze3DComponent();
 		final AudioButton audioButton = new AudioButton();
 		
 		frame.add(scene, BorderLayout.CENTER);

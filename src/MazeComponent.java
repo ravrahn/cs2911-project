@@ -28,13 +28,13 @@ public class MazeComponent extends JComponent {
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_UP && !maze.getWall(player, Maze.UP)) {
+				if ((e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_W) && !maze.getWall(player, Maze.UP)) {
 					player.setY(player.getY() - 1);
-				} else if (e.getKeyCode() == KeyEvent.VK_RIGHT && !maze.getWall(player, Maze.RIGHT)) {
+				} else if ((e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) && !maze.getWall(player, Maze.RIGHT)) {
 					player.setX(player.getX() + 1);
-				} else if (e.getKeyCode() == KeyEvent.VK_DOWN && !maze.getWall(player, Maze.DOWN)) {
+				} else if ((e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_S) && !maze.getWall(player, Maze.DOWN)) {
 					player.setY(player.getY() + 1);
-				} else if (e.getKeyCode() == KeyEvent.VK_LEFT && !maze.getWall(player, Maze.LEFT)) {
+				} else if ((e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) && !maze.getWall(player, Maze.LEFT)) {
 					player.setX(player.getX() - 1);
 				}
 				
