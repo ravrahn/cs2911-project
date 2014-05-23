@@ -260,16 +260,16 @@ public class SimpleMaze implements Maze {
 			throw new IllegalArgumentException("Invalid direction");
 		}
 		if (direction == Maze.UP) {
-			return Color.RED;
+			return new Color(0xc7d9e9);
 		}
 		if (direction == Maze.RIGHT) {
-			return Color.BLUE;
+			return new Color(0x96bcdd);
 		}
 		if (direction == Maze.DOWN) {
-			return Color.YELLOW;
+			return new Color(0x659ac8);
 		}
 		if (direction == Maze.LEFT) {
-			return Color.GREEN;
+			return new Color(0x005a96);
 		}
 		return Color.BLACK;
 	}
