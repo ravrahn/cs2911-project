@@ -36,19 +36,35 @@ public class PlayerComponent extends JComponent {
 	public void update(ArrayList<Wall> mazeWalls) {
 		lastPosition = new Point(position);
 		position.setX(position.getX() + velocity * Math.cos(angle));
+		Quadrilateral xHitbox = genHitbox();
+		position.setX(lastPosition.getX());
 		position.setY(position.getY() + velocity * Math.sin(angle));
-
+		Quadrilateral yHitbox = genHitbox();
+		position.setX(position.getX() + velocity * Math.cos(angle));
 		Quadrilateral hitbox = genHitbox();
+		boolean xMove = true;
+		boolean yMove = true;
 		boolean move = true;
 		for (Wall wall : mazeWalls) {
 			if (hitbox.intersectsLine(wall.getBase())) {
 				move = false;
-				break;
+			}
+			if (xHitbox.intersectsLine(wall.getBase())) {
+				xMove = false;
+			}
+			if (yHitbox.intersectsLine(wall.getBase())) {
+				yMove = false;
 			}
 		}
 
 		if (!move) {
-			position = lastPosition;
+			if (xMove) {
+				position.setY(lastPosition.getY());
+			} else if (yMove) {
+				position.setX(lastPosition.getX());
+			} else {
+				position = lastPosition;
+			}
 		}
 	}
 
@@ -67,6 +83,7 @@ public class PlayerComponent extends JComponent {
 
 		Quadrilateral drawBox = new Quadrilateral(
 				scaleTransform.multiply(genHitbox()));
+		g2D.drawRect((int) drawBox.getX(1), (int) drawBox.getY(1), (int) (drawBox.getX(3) - drawBox.getX(1)), (int) (drawBox.getY(3) - drawBox.getY(1)));
 		g2D.drawImage(image, (int) drawBox.getX(1), (int) drawBox.getY(1),
 				(int) (drawBox.getX(3) - drawBox.getX(1)),
 				(int) (drawBox.getY(3) - drawBox.getY(1)), null);
