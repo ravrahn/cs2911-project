@@ -26,11 +26,6 @@ public class Player {
 		double[][] identity = { { 1, 0 }, { 0, 1 } };
 		scaleTransform = new Matrix(identity, identity.length,
 				identity[0].length);
-		try {
-			image = ImageIO.read(new File("fancy_stickman.png"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	public void update(ArrayList<Wall> mazeWalls) {
@@ -78,15 +73,12 @@ public class Player {
 
 	public void draw(Graphics g) {
 		Graphics2D g2D = (Graphics2D) g;
-		g2D.setColor(Color.WHITE);
+		g2D.setColor(Color.BLACK);
 		Quadrilateral drawBox = new Quadrilateral(
 				scaleTransform.multiply(genHitbox()));
 		g2D.fillOval((int) drawBox.getX(1), (int) drawBox.getY(1),
 				(int) (drawBox.getX(3) - drawBox.getX(1)),
 				(int) (drawBox.getY(3) - drawBox.getY(1)));
-//		g2D.drawImage(image, (int) drawBox.getX(1), (int) drawBox.getY(1),
-//				(int) (drawBox.getX(3) - drawBox.getX(1)),
-//				(int) (drawBox.getY(3) - drawBox.getY(1)), null);
 	}
 
 	public Point getPosition() {

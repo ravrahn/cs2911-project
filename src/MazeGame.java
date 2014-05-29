@@ -64,6 +64,17 @@ public class MazeGame {
 		pauseButton.setEnabled(false);
 		pauseButton.setVisible(false);
 		
+		final JButton helpButton = new JButton();
+		helpButton.setPreferredSize(new Dimension(128, 64));
+		helpButton.setMinimumSize(new Dimension(128, 64));
+		helpButton.setMaximumSize(new Dimension(128, 64));
+		helpButton.setBackground(new Color(0xededed));
+		helpButton.setFont(new Font("Roboto Condensed", Font.PLAIN, 24));
+		helpButton.setText("Help");
+		helpButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		helpButton.setEnabled(true);
+		helpButton.setVisible(true);
+		
 		final JButton audioButton = new JButton();
 		audioButton.setPreferredSize(new Dimension(128, 64));
 		audioButton.setMinimumSize(new Dimension(128, 64));
@@ -91,10 +102,14 @@ public class MazeGame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				scene.newGame();
+				// stop showing the menu
 				menuPane.setEnabled(false);
 				menuPane.setVisible(false);
+				// disable the main menu buttons
 				newGameButton.setEnabled(false);
 				newGameButton.setVisible(false);
+				helpButton.setEnabled(false);
+				helpButton.setVisible(false);
 			}
 		});
 		
@@ -132,6 +147,8 @@ public class MazeGame {
 					if (event.getNewValue().equals(true)) {
 						pauseButton.setEnabled(true);
 						pauseButton.setVisible(true);
+						helpButton.setEnabled(false);
+						helpButton.setVisible(false);
 						audioButton.setEnabled(true);
 						audioButton.setVisible(true);
 						menuPane.setEnabled(true);
@@ -143,6 +160,7 @@ public class MazeGame {
 						menuPane.setEnabled(true);
 						menuPane.setVisible(true);
 						frame.requestFocusInWindow();
+					} else {
 					}
 				} else if (event.getPropertyName().equals("muted")) {
 					if (event.getNewValue().equals(true)) {
@@ -150,6 +168,15 @@ public class MazeGame {
 					} else {
 						audioButton.setText("Mute");
 					}
+				} else if (event.getPropertyName().equals("winning")) {
+					newGameButton.setEnabled(true);
+					newGameButton.setVisible(true);
+					pauseButton.setEnabled(false);
+					pauseButton.setVisible(false);
+					helpButton.setEnabled(true);
+					helpButton.setVisible(true);
+					audioButton.setEnabled(false);
+					audioButton.setVisible(false);
 				}
 			}
 		});
@@ -168,11 +195,15 @@ public class MazeGame {
 		panel.setOpaque(false);
 		panel.add(Box.createVerticalGlue());
 		
+		// top buttons
 		panel.add(newGameButton);
 		panel.add(pauseButton);
 		panel.add(Box.createVerticalGlue());
+		// middle buttons
+		panel.add(helpButton);
 		panel.add(audioButton);
 		panel.add(Box.createVerticalGlue());
+		// bottom buttons
 		panel.add(quitButton);
 		panel.add(Box.createVerticalGlue());
 		

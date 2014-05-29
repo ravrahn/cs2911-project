@@ -167,6 +167,8 @@ public class FancyMaze3DComponent extends JComponent {
 				&& p.getX() < 2 * maze.getWidth() - 1
 				&& p.getY() > 2 * maze.getHeight() - 2
 				&& p.getY() < 2 * maze.getHeight() - 1) {
+			// we win!
+			pCS.firePropertyChange("winning", false, true);
 			running = false;
 			pCS.firePropertyChange("running", !running, running);
 		}
@@ -214,8 +216,8 @@ public class FancyMaze3DComponent extends JComponent {
 		}
 
 		drawMaze3D(g2D);
-		drawMinimap(g2D, getWidth() - 208, 16,
-				getWidth() - 16, 208);
+		drawMinimap(g2D, getWidth() - 220, 16,
+				getWidth() - 16, 220);
 
 		g2D.setColor(Color.BLACK);
 		g2D.drawString("FPS " + fps, 5, 10);
@@ -275,6 +277,11 @@ public class FancyMaze3DComponent extends JComponent {
 			int newRed = Math.min((int) (color.getRed() / minLength), color.getRed());
 			int newGreen = Math.min((int) (color.getGreen() / minLength), color.getGreen());
 			int newBlue = Math.min((int) (color.getBlue() / minLength), color.getBlue());
+			
+			newRed = Math.max(newRed, color.getRed()/4);
+			newGreen = Math.max(newGreen, color.getGreen()/4);
+			newBlue = Math.max(newBlue, color.getBlue()/4);
+			
 			color = new Color(newRed, newGreen, newBlue);
 			g2D.setColor(color);
 			g2D.drawLine(i, (getHeight() / 2) - height, i, (getHeight() / 2)
@@ -325,8 +332,6 @@ public class FancyMaze3DComponent extends JComponent {
 
 	public void resume() {
 		paused = false;
-//		quitButton.setEnabled(false);
-//		quitButton.setVisible(false);
 	}
 	
 	public void mute() {
