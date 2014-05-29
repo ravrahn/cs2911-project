@@ -2,15 +2,21 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
+import java.awt.geom.Path2D;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.JComponent;
 
 /**
@@ -19,39 +25,68 @@ import javax.swing.JComponent;
  */
 public class FancyMaze3DComponent extends JComponent {
 	public FancyMaze3DComponent() {
-		maze = new SimpleMaze(10, 10);
-		mazeWalls = maze.toWalls();
-		player = new PlayerComponent();
-		try {
-			wallImage = ImageIO.read(new File("water.png"));
-			floorImage = ImageIO.read(new File("island_desert.png"));
-			playerImage = ImageIO.read(new File("fancy_stickman.png"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		pCS = new PropertyChangeSupport(this);
+		new AudioThread().start();
 
 		keyboard = new KeyboardInput();
 		addKeyListener(keyboard);
-		
-		addMouseListener(new MouseAdapter() {
+		addKeyListener(new KeyAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
-				grabFocus();
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_P && running) {
+					if (paused) {
+						resume();
+					} else {
+						pause();
+					}
+				}
+			}
+		});
+		
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_M) {
+					muted = !muted;
+				}
+			}
+		});
+		
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					System.exit(0);
+				}
 			}
 		});
 
-		running = true;
+		running = false;
 		paused = false;
-		
+		muted = false;
+
 		setDoubleBuffered(true);
 		setFocusable(true);
 
 		fps = 60;
-		
-		runGameLoop();
 	}
 
-	private void runGameLoop() {
+	public void newGame() {
+		running = true;
+		pCS.firePropertyChange("running", !running, running);
+		maze = new SimpleMaze(10, 10);
+		mazeWalls = maze.toWalls();
+		player = new Player();
+		System.gc();
+		
+		endWalls = new ArrayList<Wall>();
+		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.6, 2 * maze
+				.getHeight() - 1.6, 2 * maze.getWidth() - 1.4, 2 * maze
+				.getHeight() - 1.4), Color.WHITE));
+		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.4, 2 * maze
+				.getHeight() - 1.6, 2 * maze.getWidth() - 1.6, 2 * maze
+				.getHeight() - 1.4), Color.WHITE));
+		
 		Thread loop = new Thread() {
 			public void run() {
 				gameLoop();
@@ -76,9 +111,9 @@ public class FancyMaze3DComponent extends JComponent {
 		while (running) {
 			double now = System.nanoTime();
 			int updateCount = 0;
-			if (hasFocus() && !paused) {
+			if (!paused) {
 				// Do as many game updates as we need to, potentially playing
-				// catchup.
+				// catchup
 				while (now - lastUpdateTime > TIME_BETWEEN_UPDATES
 						&& updateCount < MAX_UPDATES_BEFORE_RENDER) {
 					updateGame();
@@ -86,22 +121,16 @@ public class FancyMaze3DComponent extends JComponent {
 					updateCount++;
 				}
 
-				// If for some reason an update takes forever, we don't want to
-				// do an insane number of catchups.
-				// If you were doing some sort of game that needed to keep EXACT
-				// time, you would get rid of this.
+				// Avoid extreme numbers of updates
 				if (now - lastUpdateTime > TIME_BETWEEN_UPDATES) {
 					lastUpdateTime = now - TIME_BETWEEN_UPDATES;
 				}
 
-				// Render. To do so, we need to calculate interpolation for a
-				// smooth render.
-				interpolation = Math.min(1.0f,
-						((now - lastUpdateTime) / TIME_BETWEEN_UPDATES));
+				// Render
 				repaint();
 				lastRenderTime = now;
 
-				// Update the frames we got.
+				// Update frames
 				int thisSecond = (int) (lastUpdateTime / 1000000000);
 				if (thisSecond > lastSecondTime) {
 					System.out.println("NEW SECOND " + thisSecond + " "
@@ -111,19 +140,11 @@ public class FancyMaze3DComponent extends JComponent {
 					lastSecondTime = thisSecond;
 				}
 
-				// Yield until it has been at least the target time between
-				// renders. This saves the CPU from hogging.
+				// Yield until target time
 				while (now - lastRenderTime < TARGET_TIME_BETWEEN_RENDERS
 						&& now - lastUpdateTime < TIME_BETWEEN_UPDATES) {
 					Thread.yield();
 
-					// This stops the app from consuming all your CPU. It makes
-					// this slightly less accurate, but is worth it.
-					// You can remove this line and it will still work (better),
-					// your CPU just climbs on certain OSes.
-					// FYI on some OS's this can cause pretty bad stuttering.
-					// Scroll down and have a look at different peoples'
-					// solutions to this.
 					try {
 						Thread.sleep(1);
 					} catch (Exception e) {
@@ -131,40 +152,55 @@ public class FancyMaze3DComponent extends JComponent {
 
 					now = System.nanoTime();
 				}
+			} else {
+				pause();
 			}
 		}
 	}
 
 	private void updateGame() {
+		requestFocusInWindow();
 		keyboard.poll();
 		player.setVelocity(0);
 		processInput();
 		player.update(mazeWalls);
+		Point p = player.getPosition();
+		if (p.getX() > 2 * maze.getWidth() - 2
+				&& p.getX() < 2 * maze.getWidth() - 1
+				&& p.getY() > 2 * maze.getHeight() - 2
+				&& p.getY() < 2 * maze.getHeight() - 1) {
+			running = false;
+			pCS.firePropertyChange("running", !running, running);
+		}
 	}
 
 	private void processInput() {
-		if (keyboard.keyDown(KeyEvent.VK_ESCAPE)) {
-			System.exit(0);
-		}
-		
 		if (keyboard.keyDown(KeyEvent.VK_UP) || keyboard.keyDown(KeyEvent.VK_W)) {
 			player.addVelocity(0.05);
 		}
 
-		if (keyboard.keyDown(KeyEvent.VK_RIGHT) || keyboard.keyDown(KeyEvent.VK_D)) {
+		if (keyboard.keyDown(KeyEvent.VK_RIGHT)
+				|| keyboard.keyDown(KeyEvent.VK_D)) {
 			player.addAngle(Math.PI / 36);
 		}
 
-		if (keyboard.keyDown(KeyEvent.VK_DOWN) || keyboard.keyDown(KeyEvent.VK_S)) {
+		if (keyboard.keyDown(KeyEvent.VK_DOWN)
+				|| keyboard.keyDown(KeyEvent.VK_S)) {
 			player.addVelocity(-0.05);
 		}
 
-		if (keyboard.keyDown(KeyEvent.VK_LEFT) || keyboard.keyDown(KeyEvent.VK_A)) {
+		if (keyboard.keyDown(KeyEvent.VK_LEFT)
+				|| keyboard.keyDown(KeyEvent.VK_A)) {
 			player.addAngle(-Math.PI / 36);
 		}
-		
-		if (keyboard.keyDown(KeyEvent.VK_P)) {
-			paused = true;
+	}
+	
+	@Override
+	public void paint(Graphics g) {
+		super.paint(g);
+		paintComponent(g);
+		if (paused || !running) {
+			paintChildren(g);
 		}
 	}
 
@@ -175,67 +211,37 @@ public class FancyMaze3DComponent extends JComponent {
 		g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
 
-		int mazeWidth = maze.getWidth();
-		int mazeHeight = maze.getHeight();
-		int imgWidth = getWidth() / (2 * mazeWidth + 1);
-		int imgHeight = getHeight() / (2 * mazeHeight + 1);
-//		for (int y = 0; y < mazeHeight; y++) {
-//			for (int x = 0; x < mazeWidth; x++) {
-//				g2D.drawImage(wallImage, (2 * x) * imgWidth, (2 * y)
-//						* imgHeight, imgWidth, imgHeight, null);
-//				if (maze.getWall(new SimpleCoordinate(x, y), Maze.UP)) {
-//					g2D.drawImage(wallImage, (2 * x + 1) * imgWidth, (2 * y)
-//							* imgHeight, imgWidth, imgHeight, null);
-//				} else {
-//					g2D.drawImage(floorImage, (2 * x + 1) * imgWidth, (2 * y)
-//							* imgHeight, imgWidth, imgHeight, null);
-//				}
-//			}
-//			g2D.drawImage(wallImage, (2 * mazeWidth) * imgWidth, (2 * y)
-//					* imgHeight, imgWidth, imgHeight, null);
-//
-//			for (int x = 0; x < mazeWidth; x++) {
-//				if (maze.getWall(new SimpleCoordinate(x, y), Maze.LEFT)) {
-//					g2D.drawImage(wallImage, (2 * x) * imgWidth, (2 * y + 1)
-//							* imgHeight, imgWidth, imgHeight, null);
-//				} else {
-//					g2D.drawImage(floorImage, (2 * x) * imgWidth, (2 * y + 1)
-//							* imgHeight, imgWidth, imgHeight, null);
-//				}
-//				g2D.drawImage(floorImage, (2 * x + 1) * imgWidth, (2 * y + 1)
-//						* imgHeight, imgWidth, imgHeight, null);
-//				if (player.equals(new SimpleCoordinate(x, y))) {
-//					g2D.drawImage(playerImage, (2 * x + 1) * imgWidth,
-//							(2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
-//				}
-//			}
-//			if (maze.getWall(new SimpleCoordinate(mazeWidth - 1, y), Maze.RIGHT)) {
-//				g2D.drawImage(wallImage, (2 * mazeWidth) * imgWidth,
-//						(2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
-//			} else {
-//				g2D.drawImage(floorImage, (2 * mazeWidth) * imgWidth,
-//						(2 * y + 1) * imgHeight, imgWidth, imgHeight, null);
-//			}
-//		}
-//
-//		for (int x = 0; x < mazeWidth; x++) {
-//			g2D.drawImage(wallImage, (2 * x) * imgWidth, (2 * mazeHeight)
-//					* imgHeight, imgWidth, imgHeight, null);
-//			if (maze.getWall(new SimpleCoordinate(x, mazeHeight - 1), Maze.DOWN)) {
-//				g2D.drawImage(wallImage, (2 * x + 1) * imgWidth,
-//						(2 * mazeHeight) * imgHeight, imgWidth, imgHeight, null);
-//			} else {
-//				g2D.drawImage(floorImage, (2 * x + 1) * imgWidth,
-//						(2 * mazeHeight) * imgHeight, imgWidth, imgHeight, null);
-//			}
-//		}
-//		g2D.drawImage(wallImage, (2 * mazeWidth) * imgWidth, (2 * mazeHeight)
-//				* imgHeight, imgWidth, imgHeight, null);
-		
-		// 3D Crazyness
+		if (!running) {
+			return;
+		}
+
+		drawMaze3D(g2D);
+		drawMinimap(g2D, getWidth() - getHeight() / 3 - 10, 10,
+				getWidth() - 10, getHeight() / 3 + 10);
+
+		g2D.setColor(Color.BLACK);
+		g2D.drawString("FPS " + fps, 5, 10);
+
+		frameCount++;
+	}
+
+	private void drawMaze3D(Graphics g) {
+		Graphics2D g2D = (Graphics2D) g;
+
+		// Background
+		g2D.setColor(Color.LIGHT_GRAY);
+		g2D.fillRect(0, 0, getWidth(), getHeight() / 2);
+		g2D.setColor(Color.DARK_GRAY);
+		g2D.fillRect(0, getHeight() / 2, getWidth(), getHeight() / 2 + 1);
+
+		// 3D Craziness (Ray-tracing)
 		for (int i = 0; i < getWidth(); i++) {
-			double rayAngle = player.getAngle() + ((i - (getWidth() / 2)) * (Math.PI / 2000));
-			Line ray = new Line(player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getX() + 1000 * Math.cos(rayAngle), player.getPosition().getY() + 1000 * Math.sin(rayAngle));
+			double rayAngle = player.getAngle()
+					+ ((i - (getWidth() / 2)) * (Math.PI / 2000));
+			Line ray = new Line(player.getPosition().getX(), player
+					.getPosition().getY(), player.getPosition().getX() + 1000
+					* Math.cos(rayAngle), player.getPosition().getY() + 1000
+					* Math.sin(rayAngle));
 			double minLength = Double.POSITIVE_INFINITY;
 			int height = 300;
 			Color color = Color.BLACK;
@@ -244,54 +250,159 @@ public class FancyMaze3DComponent extends JComponent {
 				if (p != null) {
 					double dist = p.distance(player.getPosition());
 					if (dist < minLength) {
-						minLength = dist;
-						if (dist == 0) dist = 0.1;
+						minLength = Math.max(dist, 0.1);
 						height = (int) (300 / dist);
 						color = wall.getColor();
 					}
 				}
 			}
+			Point p = ray.intersection(endWalls.get(0).getBase());
+			if (p != null) {
+				double dist = p.distance(player.getPosition());
+				if (dist < minLength) {
+					minLength = Math.max(dist, 0.1);
+					height = (int) (300 / dist);
+					color = endWalls.get(0).getColor();
+				}
+			}
+			p = ray.intersection(endWalls.get(1).getBase());
+			if (p != null) {
+				double dist = p.distance(player.getPosition());
+				if (dist < minLength) {
+					minLength = Math.max(dist, 0.1);
+					height = (int) (300 / dist);
+					color = endWalls.get(1).getColor();
+				}
+			}
+			int newRed = Math.min((int) (color.getRed() / minLength), 255);
+			int newGreen = Math.min((int) (color.getGreen() / minLength), 255);
+			int newBlue = Math.min((int) (color.getBlue() / minLength), 255);
+			color = new Color(newRed, newGreen, newBlue);
 			g2D.setColor(color);
-			g2D.drawLine(i, (getHeight() / 2) - height, i, (getHeight() / 2) + height);
+			g2D.drawLine(i, (getHeight() / 2) - height, i, (getHeight() / 2)
+					+ height);
 		}
-		
-		g2D.setColor(Color.BLACK);
-		g2D.translate(450, 20);
-		double[][] scaleArray = {{10, 0}, {0, 10}};
-		Matrix scaleTransform = new Matrix(scaleArray, scaleArray.length, scaleArray[0].length);
+	}
+
+	private void drawMinimap(Graphics g, int x1, int y1, int x2, int y2) {
+		Graphics2D g2D = (Graphics2D) g;
+		g2D.translate(x1, y1);
+		g2D.setColor(new Color(0, 0, 0, 63));
+		g2D.fillRect(0, 0, x2 - x1 + 1, y2 - y1 + 1);
+		double[][] scaleArray = {
+				{ (x2 - x1) / (maze.getWidth() * 2 - 1.0), 0 },
+				{ 0, (y2 - y1) / (maze.getHeight() * 2 - 1.0) } };
+		Matrix scaleTransform = new Matrix(scaleArray, scaleArray.length,
+				scaleArray[0].length);
 		ArrayList<Wall> scaledWalls = new ArrayList<Wall>();
 		for (Wall wall : mazeWalls) {
-			scaledWalls.add(new Wall(new Line(scaleTransform.multiply(wall.getBase())), wall.getColor()));
+			scaledWalls.add(new Wall(new Line(scaleTransform.multiply(wall
+					.getBase())), wall.getColor()));
 		}
+		Path2D.Float path = new Path2D.Float();
+		path.moveTo(0, 0);
 		for (Wall wall : scaledWalls) {
-//			g2D.setColor(wall.getColor());
-			g2D.drawLine((int) wall.getBase().getX1(), (int) wall.getBase().getY1(), (int) wall.getBase().getX2(), (int) wall.getBase().getY2());
+			path.lineTo(wall.getBase().getX1(), wall.getBase().getY1());
+		}
+		path.lineTo(0, 0);
+		g2D.setColor(new Color(0, 0, 0, 127));
+		g2D.draw(path);
+		g2D.setColor(new Color(0, 0, 0, 31));
+		g2D.fill(path);
+		player.setScaleTransform(scaleTransform);
+		player.draw(g2D);
+		Line scaledEndWall;
+		for (Wall wall : endWalls) {
+			scaledEndWall = new Line(scaleTransform.multiply(wall.getBase()));
+			g2D.setColor(wall.getColor());
+			g2D.drawLine((int) scaledEndWall.getX1(), (int) scaledEndWall.getY1(), (int) scaledEndWall.getX2(), (int) scaledEndWall.getY2());
+		}
+		g2D.translate(-x1, -y1);
+	}
+
+	public void pause() {
+		paused = true;
+		pCS.firePropertyChange("paused", !paused, paused);
+	}
+
+	public void resume() {
+		paused = false;
+//		quitButton.setEnabled(false);
+//		quitButton.setVisible(false);
+	}
+	
+	public void mute() {
+		muted = true;
+		pCS.firePropertyChange("muted", !muted, muted);
+	}
+	
+	public void unMute() {
+		muted = false;
+		pCS.firePropertyChange("muted", !muted, muted);
+	}
+	
+	public boolean isMuted() {
+		return muted;
+	}
+	
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pCS.addPropertyChangeListener(listener);
+	}
+	
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pCS.removePropertyChangeListener(listener);
+	}
+	
+	private class AudioThread extends Thread {
+		byte tempBuffer[] = new byte[5];
+		public void run() {
+			try {
+				while (true) {
+					audioInputStream = AudioSystem.getAudioInputStream(new File("mountain_king.wav"));
+					audioFormat = audioInputStream.getFormat();
+					
+					DataLine.Info dataLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
+					sourceDataLine = (SourceDataLine) AudioSystem.getLine(dataLineInfo);
+					
+					sourceDataLine.open(audioFormat);
+					sourceDataLine.start();
+					int cnt = audioInputStream.read(tempBuffer, 0, tempBuffer.length);
+					while (cnt != -1) {
+						if (!muted) {
+							sourceDataLine.write(tempBuffer, 0, cnt);
+						}
+						cnt = audioInputStream.read(tempBuffer, 0, tempBuffer.length);
+					}
+					
+					sourceDataLine.drain();
+					sourceDataLine.close();
+					System.out.println("Audio Closed");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.exit(0);
+			}
 		}
 		
-		player.setScaleTransform(scaleTransform);
-		player.paintComponent(g2D);
-		
-		g2D.setColor(Color.BLACK);
-		g2D.translate(-450, -20);
-		
-		g2D.setColor(Color.BLACK);
-		g2D.drawString("FPS " + fps, 5, 10);
-		
-		frameCount++;
+		AudioFormat audioFormat;
+		AudioInputStream audioInputStream;
+		SourceDataLine sourceDataLine;
 	}
 
 	private boolean running;
 	private boolean paused;
+	private boolean muted;
 	private SimpleMaze maze;
 	private ArrayList<Wall> mazeWalls;
-	private PlayerComponent player;
+	private ArrayList<Wall> endWalls;
+	private Player player;
 	private KeyboardInput keyboard;
-	private BufferedImage wallImage;
-	private BufferedImage floorImage;
-	private BufferedImage playerImage;
-	private static final long serialVersionUID = 1L;
+	
+	private PropertyChangeSupport pCS;
 
 	private int fps;
 	private int frameCount;
-	private double interpolation;
+	private static final long serialVersionUID = 1L;
 }

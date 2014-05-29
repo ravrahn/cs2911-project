@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -6,18 +7,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-import javax.swing.JComponent;
 
 /**
  * A Player
  * 
  * @author Gabriel
  */
-public class PlayerComponent extends JComponent {
-	public PlayerComponent() {
+public class Player {
+	public Player() {
 		position = new Point(0.5, 0.5);
 		lastPosition = new Point(position);
-		angle = Math.PI / 2;
+		angle = Math.PI / 4;
 		velocity = 0;
 		width = 0.4;
 		height = 0.4;
@@ -76,23 +76,23 @@ public class PlayerComponent extends JComponent {
 				+ height / 2);
 	}
 
-	@Override
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
+	public void draw(Graphics g) {
 		Graphics2D g2D = (Graphics2D) g;
-
+		g2D.setColor(Color.WHITE);
 		Quadrilateral drawBox = new Quadrilateral(
 				scaleTransform.multiply(genHitbox()));
-		g2D.drawRect((int) drawBox.getX(1), (int) drawBox.getY(1), (int) (drawBox.getX(3) - drawBox.getX(1)), (int) (drawBox.getY(3) - drawBox.getY(1)));
-		g2D.drawImage(image, (int) drawBox.getX(1), (int) drawBox.getY(1),
+		g2D.fillOval((int) drawBox.getX(1), (int) drawBox.getY(1),
 				(int) (drawBox.getX(3) - drawBox.getX(1)),
-				(int) (drawBox.getY(3) - drawBox.getY(1)), null);
+				(int) (drawBox.getY(3) - drawBox.getY(1)));
+//		g2D.drawImage(image, (int) drawBox.getX(1), (int) drawBox.getY(1),
+//				(int) (drawBox.getX(3) - drawBox.getX(1)),
+//				(int) (drawBox.getY(3) - drawBox.getY(1)), null);
 	}
-	
+
 	public Point getPosition() {
 		return position;
 	}
-	
+
 	public double getAngle() {
 		return angle;
 	}
@@ -111,14 +111,6 @@ public class PlayerComponent extends JComponent {
 		this.angle -= 2 * Math.PI * rotations;
 	}
 
-	public void setXVelocity(double xVel) {
-		xVelocity = xVel;
-	}
-
-	public void setYVelocity(double yVel) {
-		yVelocity = yVel;
-	}
-
 	public void addVelocity(double vel) {
 		velocity += vel;
 	}
@@ -127,14 +119,6 @@ public class PlayerComponent extends JComponent {
 		this.angle += angle;
 		int rotations = (int) (this.angle / (2 * Math.PI));
 		this.angle -= 2 * Math.PI * rotations;
-	}
-
-	public void addXVelocity(double xVel) {
-		xVelocity += xVel;
-	}
-
-	public void addYVelocity(double yVel) {
-		yVelocity += yVel;
 	}
 
 	// Centre of the x and y
@@ -147,5 +131,4 @@ public class PlayerComponent extends JComponent {
 	double xVelocity, yVelocity;
 	Matrix scaleTransform;
 	Image image;
-	private static final long serialVersionUID = 1L;
 }
