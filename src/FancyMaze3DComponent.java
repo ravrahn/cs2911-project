@@ -2,8 +2,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Path2D;
@@ -216,8 +214,8 @@ public class FancyMaze3DComponent extends JComponent {
 		}
 
 		drawMaze3D(g2D);
-		drawMinimap(g2D, getWidth() - getHeight() / 3 - 10, 10,
-				getWidth() - 10, getHeight() / 3 + 10);
+		drawMinimap(g2D, getWidth() - 208, 16,
+				getWidth() - 16, 208);
 
 		g2D.setColor(Color.BLACK);
 		g2D.drawString("FPS " + fps, 5, 10);
@@ -274,9 +272,9 @@ public class FancyMaze3DComponent extends JComponent {
 					color = endWalls.get(1).getColor();
 				}
 			}
-			int newRed = Math.min((int) (color.getRed() / minLength), 255);
-			int newGreen = Math.min((int) (color.getGreen() / minLength), 255);
-			int newBlue = Math.min((int) (color.getBlue() / minLength), 255);
+			int newRed = Math.min((int) (color.getRed() / minLength), color.getRed());
+			int newGreen = Math.min((int) (color.getGreen() / minLength), color.getGreen());
+			int newBlue = Math.min((int) (color.getBlue() / minLength), color.getBlue());
 			color = new Color(newRed, newGreen, newBlue);
 			g2D.setColor(color);
 			g2D.drawLine(i, (getHeight() / 2) - height, i, (getHeight() / 2)
@@ -287,7 +285,7 @@ public class FancyMaze3DComponent extends JComponent {
 	private void drawMinimap(Graphics g, int x1, int y1, int x2, int y2) {
 		Graphics2D g2D = (Graphics2D) g;
 		g2D.translate(x1, y1);
-		g2D.setColor(new Color(0, 0, 0, 63));
+		g2D.setColor(new Color(255, 255, 255, 63));
 		g2D.fillRect(0, 0, x2 - x1 + 1, y2 - y1 + 1);
 		double[][] scaleArray = {
 				{ (x2 - x1) / (maze.getWidth() * 2 - 1.0), 0 },
@@ -305,9 +303,9 @@ public class FancyMaze3DComponent extends JComponent {
 			path.lineTo(wall.getBase().getX1(), wall.getBase().getY1());
 		}
 		path.lineTo(0, 0);
-		g2D.setColor(new Color(0, 0, 0, 127));
+		g2D.setColor(Color.BLACK);
 		g2D.draw(path);
-		g2D.setColor(new Color(0, 0, 0, 31));
+		g2D.setColor(new Color(255, 255, 255, 31));
 		g2D.fill(path);
 		player.setScaleTransform(scaleTransform);
 		player.draw(g2D);

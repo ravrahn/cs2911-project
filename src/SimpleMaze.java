@@ -255,21 +255,21 @@ public class SimpleMaze implements Maze {
 		return walls;
 	}
 	
-	private Color directionToColor(int direction) {
+	protected Color directionToColor(int direction) {
 		if (direction < 0 || direction > 3) {
 			throw new IllegalArgumentException("Invalid direction");
 		}
 		if (direction == Maze.UP) {
-			return Color.RED;
+			return new Color(0xc2dcec);
 		}
 		if (direction == Maze.RIGHT) {
-			return Color.BLUE;
-		}
-		if (direction == Maze.DOWN) {
-			return Color.YELLOW;
+			return new Color(0x86b9d8);
 		}
 		if (direction == Maze.LEFT) {
-			return Color.GREEN;
+			return new Color(0x659ec8);
+		}
+		if (direction == Maze.DOWN) {
+			return new Color(0x3a84b5);
 		}
 		return Color.BLACK;
 	}
