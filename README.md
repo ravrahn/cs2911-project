@@ -1,8 +1,6 @@
 Interactive Maze Puzzle Game
 ==============
 
-####If you are reading this, don't commit. Switch to a dev branch.
-
 You are probably familiar with mazes. Basically, a maze is a rectangular grid of positions where movement between some positions is allowed but movement is sometimes is blocked by a wall. The usual objective is to find a path through the maze from a given start position to some exit position. A basic game has only one start and one exit position, which could be anywhere in the maze. Further variations on a basic game might be to have multiple exit positions or a non-rectangular shape, to avoid certain locations or obstacles (even dynamically moving "predators"), multiple players and/or to complete intermediate tasks, such as collecting items of value along the way before reaching the exit.
 
 A basic maze can be displayed in many different ways, but the basic structure is shown below on the left (here the start is at the upper left corner and the exit is at the bottom right corner). A more fancy-looking maze such as on the right might have coloured squares, coins to collect, multiple players, etc.
