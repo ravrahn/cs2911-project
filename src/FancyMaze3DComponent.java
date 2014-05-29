@@ -80,10 +80,10 @@ public class FancyMaze3DComponent extends JComponent {
 		endWalls = new ArrayList<Wall>();
 		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.6, 2 * maze
 				.getHeight() - 1.6, 2 * maze.getWidth() - 1.4, 2 * maze
-				.getHeight() - 1.4), Color.WHITE));
+				.getHeight() - 1.4), Color.BLACK));
 		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.4, 2 * maze
 				.getHeight() - 1.6, 2 * maze.getWidth() - 1.6, 2 * maze
-				.getHeight() - 1.4), Color.WHITE));
+				.getHeight() - 1.4), Color.BLACK));
 		
 		Thread loop = new Thread() {
 			public void run() {
