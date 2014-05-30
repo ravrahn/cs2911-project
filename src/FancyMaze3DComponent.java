@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -372,16 +373,40 @@ public class FancyMaze3DComponent extends JComponent {
 	 * @precondition x2 > x1, y2 > y1
 	 */
 	private void drawMinimap(Graphics g, int x1, int y1, int x2, int y2) {
+		
+		BufferedImage buff = new BufferedImage(x2 - x1 + 1, y2 - y1  + 1, BufferedImage.TYPE_INT_ARGB);
 
-		Graphics2D g2D = (Graphics2D) g;
+//		Graphics2D g2D = (Graphics2D) g;
+		Graphics2D g2D = buff.createGraphics();
 		// Move to position
-		g2D.translate(x1, y1);
+//		g2D.translate(x1, y1);
 		// Draw background
-		g2D.setColor(new Color(255, 255, 255, 63));
-		g2D.fillRect(0, 0, x2 - x1 + 1, y2 - y1 + 1);
+//		g2D.setColor(new Color(255, 255, 255, 63));
+//		g2D.fillRect(0, 0, x2 - x1 + 1, y2 - y1 + 1);
 		
 		double xScale = (x2 - x1) / (maze.getWidth() * 2 - 1.0);
 		double yScale = (y2 - y1) / (maze.getHeight() * 2 - 1.0);
+		
+		for (int rad = 0; rad < 1.5 * xScale; rad++) { 
+			// the radius around the player (1.5x a grid square)
+			for (double angle = 0.0; angle < 2 * Math.PI; angle += Math.PI / 60) {
+				// maths
+				int xPixel = (int) (player.position.getX() * 2 * xScale + rad
+						* Math.cos(angle));
+				int yPixel = (int) (player.position.getY() * 2 * yScale + rad
+						* Math.sin(angle));
+				// if it's on the minimap
+				if (xPixel >= 0 && xPixel < 2 * (x2 - x1) && yPixel >= 0
+						&& yPixel < 2 * (y2 - y1)) {
+					fog.setRGB(xPixel, yPixel, 0x00FFFFFF); // make it clear
+				}
+			}
+		}
+		g2D.drawImage(fog, 0, 0, x2 - x1 + 1, y2 - y1 + 1, null);
+		
+		FogAlphaComposite ac = new FogAlphaComposite(3);
+		g2D.setComposite(ac);
+		
 
 		// Scale walls to correct draw length
 		double[][] scaleArray = {
@@ -470,26 +495,32 @@ public class FancyMaze3DComponent extends JComponent {
 		// Scale and draw player
 		player.setScaleTransform(scaleTransform);
 		player.draw(g2D);
+		
+		// Save the current composite for later use
+//		Composite oldComposite = g2D.getComposite();
 
 		// Draw the fog of war.
-		for (int rad = 0; rad < 1.5 * xScale; rad++) { // the radius around the
-														// player (1.5x a grid
-														// square)
-			for (double angle = 0.0; angle < 2 * Math.PI; angle += Math.PI / 60) {
-				// maths
-				int xPixel = (int) (player.position.getX() * 2 * xScale + rad
-						* Math.cos(angle));
-				int yPixel = (int) (player.position.getY() * 2 * yScale + rad
-						* Math.sin(angle));
-				// if it's on the minimap
-				if (xPixel >= 0 && xPixel < 2 * (x2 - x1) && yPixel >= 0
-						&& yPixel < 2 * (y2 - y1)) {
-					fog.setRGB(xPixel, yPixel, 0x00FFFFFF); // make it clear
-				}
-			}
-		}
-		g2D.drawImage(fog, 0, 0, x2 - x1 + 1, y2 - y1 + 1, null);
+//		FogAlphaComposite ac = new FogAlphaComposite(3);
+//		g2D.setComposite(ac);
+//		for (int rad = 0; rad < 1.5 * xScale; rad++) { 
+//			// the radius around the player (1.5x a grid square)
+//			for (double angle = 0.0; angle < 2 * Math.PI; angle += Math.PI / 60) {
+//				// maths
+//				int xPixel = (int) (player.position.getX() * 2 * xScale + rad
+//						* Math.cos(angle));
+//				int yPixel = (int) (player.position.getY() * 2 * yScale + rad
+//						* Math.sin(angle));
+//				// if it's on the minimap
+//				if (xPixel >= 0 && xPixel < 2 * (x2 - x1) && yPixel >= 0
+//						&& yPixel < 2 * (y2 - y1)) {
+//					fog.setRGB(xPixel, yPixel, 0x00FFFFFF); // make it clear
+//				}
+//			}
+//		}
+//		g2D.drawImage(fog, 0, 0, x2 - x1 + 1, y2 - y1 + 1, null);
 
+//		g2D.setComposite(oldComposite);
+		
 		// The goal is at the bottom corner at all times
 		Point goalPosition = new Point(2 * maze.getWidth() - 1.5,
 				2 * maze.getHeight() - 1.5);
@@ -514,7 +545,9 @@ public class FancyMaze3DComponent extends JComponent {
 				(int) (goalQuad.getY(3) - goalQuad.getY(1)));
 
 		// Return graphics to original position
-		g2D.translate(-x1, -y1);
+//		g2D.translate(-x1, -y1);
+		
+		g.drawImage(buff, x1, y1, null);
 	}
 
 	/**
