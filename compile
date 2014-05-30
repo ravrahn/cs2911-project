@@ -25,6 +25,7 @@ echo "Source code compilation succeeded"
 echo "Copying resources..."
 
 cp menu-background.png bin/menu-background.png
+cp fog.png bin/fog.png
 cp mountain_king.wav bin/mountain_king.wav
 
 echo "Copying resources succeeded"

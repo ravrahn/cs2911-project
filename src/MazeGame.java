@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -42,6 +44,30 @@ public class MazeGame {
 		menuPane.setLayout(new BoxLayout(menuPane, BoxLayout.X_AXIS));
 
 		final FancyMaze3DComponent scene = new FancyMaze3DComponent();
+		
+		// Add Game Keyboard
+		KeyboardInput keyboard = new KeyboardInput();
+		frame.addKeyListener(keyboard);
+
+		// Add Generic Keyboard Listener for pause and mute and exit
+		frame.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_P) {
+					scene.resume();
+					menuPane.setEnabled(false);
+					menuPane.setVisible(false);
+				} else if (e.getKeyCode() == KeyEvent.VK_M) {
+					if (scene.isMuted()) {
+						scene.unMute();
+					} else {
+						scene.mute();
+					}
+				} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					System.exit(0);
+				}
+			}
+		});
 
 		final JButton newGameButton = new JButton();
 		newGameButton.setText("Play");

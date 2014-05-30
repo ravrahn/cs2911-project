@@ -5,11 +5,14 @@ import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -18,7 +21,7 @@ import javax.sound.sampled.SourceDataLine;
 import javax.swing.JComponent;
 
 /**
- * @author Gabriel
+ * @author Gabriel, Owen
  * 
  */
 public class FancyMaze3DComponent extends JComponent {
@@ -27,14 +30,13 @@ public class FancyMaze3DComponent extends JComponent {
 	 */
 	public FancyMaze3DComponent() {
 		goalColor = new Color(0xc1bb00);
+		hintColor = new Color(0xff7578);
 		pCS = new PropertyChangeSupport(this);
 		new AudioThread().start();
 
-		// Add Game Keyboard
-		keyboard = new KeyboardInput();
-		addKeyListener(keyboard);
+		keyboard = null;
 
-		// Add Generic Keyboard Listeners for pause and mute and exit
+		// Add Generic Keyboard Listener for pause and mute and exit
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -44,23 +46,14 @@ public class FancyMaze3DComponent extends JComponent {
 					} else {
 						pause();
 					}
-				}
-			}
-		});
-
-		addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_M) {
-					muted = !muted;
-				}
-			}
-		});
-
-		addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+				} else if (e.getKeyCode() == KeyEvent.VK_M) {
+					if (muted) {
+						unMute();
+					} else {
+						mute();
+					}
+					// muted = !muted;
+				} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
 					System.exit(0);
 				}
 			}
@@ -89,15 +82,30 @@ public class FancyMaze3DComponent extends JComponent {
 		mazeWalls = maze.toWalls();
 		player = new Player();
 
+		// re-initialise the fog
+		try {
+			fog = ImageIO.read(new File("fog.png"));
+		} catch (Exception eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee) {
+			eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+					.printStackTrace();
+			fog = null;
+		}
+
+		// initialise the keyboard listener
+		if (keyboard != null) {
+			removeKeyListener(keyboard);
+		}
+		keyboard = new KeyboardInput();
+		addKeyListener(keyboard);
+
 		// Position end goal
 		endWalls = new ArrayList<Wall>();
-		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.7, 2 * maze
-				.getHeight() - 1.7, 2 * maze.getWidth() - 1.2, 2 * maze
+		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.8, 2 * maze
+				.getHeight() - 1.8, 2 * maze.getWidth() - 1.2, 2 * maze
 				.getHeight() - 1.2), goalColor));
 		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.2, 2 * maze
-				.getHeight() - 1.7, 2 * maze.getWidth() - 1.7, 2 * maze
+				.getHeight() - 1.8, 2 * maze.getWidth() - 1.8, 2 * maze
 				.getHeight() - 1.2), goalColor));
-
 
 		// Get rid of any old instances
 		System.gc();
@@ -155,8 +163,6 @@ public class FancyMaze3DComponent extends JComponent {
 				// Update frames
 				int thisSecond = (int) (lastUpdateTime / 1000000000);
 				if (thisSecond > lastSecondTime) {
-					System.out.println("NEW SECOND " + thisSecond + " "
-							+ frameCount);
 					fps = frameCount;
 					frameCount = 0;
 					lastSecondTime = thisSecond;
@@ -207,7 +213,7 @@ public class FancyMaze3DComponent extends JComponent {
 	 */
 	private void processInput() {
 		if (keyboard.keyDown(KeyEvent.VK_UP) || keyboard.keyDown(KeyEvent.VK_W)) {
-			player.addVelocity(0.05);
+			player.addVelocity(0.075);
 		}
 
 		if (keyboard.keyDown(KeyEvent.VK_RIGHT)
@@ -217,15 +223,19 @@ public class FancyMaze3DComponent extends JComponent {
 
 		if (keyboard.keyDown(KeyEvent.VK_DOWN)
 				|| keyboard.keyDown(KeyEvent.VK_S)) {
-			player.addVelocity(-0.05);
+			player.addVelocity(-0.075);
 		}
 
 		if (keyboard.keyDown(KeyEvent.VK_LEFT)
 				|| keyboard.keyDown(KeyEvent.VK_A)) {
 			player.addAngle(-Math.PI / 36);
 		}
+		if (keyboard.keyDown(KeyEvent.VK_E)) {
+			hint = true;
+		} else {
+			hint = false;
+		}
 	}
-
 
 	@Override
 	public void paintComponent(Graphics g) {
@@ -246,8 +256,8 @@ public class FancyMaze3DComponent extends JComponent {
 
 		// Draw fps and guide
 		g2D.setColor(Color.BLACK);
-		g2D.drawString("FPS " + fps, 5, 10);
-		g2D.drawString("Press 'p' to pause", 5, 20);
+		g2D.drawString(fps + " FPS", 5, 15);
+		g2D.drawString("Pause: P", 5, 30);
 
 		// Update frame count
 		frameCount++;
@@ -317,12 +327,13 @@ public class FancyMaze3DComponent extends JComponent {
 				}
 			}
 
-
 			// Divide length by scale
 			minLength /= distScale;
 
 			// Calculate height to draw
 			int height = (int) (300 / minLength);
+
+			minLength /= 1.5;
 
 			// Calculate depth shaders
 			int newRed = Math.min((int) (color.getRed() / minLength),
@@ -361,17 +372,21 @@ public class FancyMaze3DComponent extends JComponent {
 	 * @precondition x2 > x1, y2 > y1
 	 */
 	private void drawMinimap(Graphics g, int x1, int y1, int x2, int y2) {
+
 		Graphics2D g2D = (Graphics2D) g;
 		// Move to position
 		g2D.translate(x1, y1);
 		// Draw background
 		g2D.setColor(new Color(255, 255, 255, 63));
 		g2D.fillRect(0, 0, x2 - x1 + 1, y2 - y1 + 1);
+		
+		double xScale = (x2 - x1) / (maze.getWidth() * 2 - 1.0);
+		double yScale = (y2 - y1) / (maze.getHeight() * 2 - 1.0);
 
 		// Scale walls to correct draw length
 		double[][] scaleArray = {
-				{ (x2 - x1) / (maze.getWidth() * 2 - 1.0), 0 },
-				{ 0, (y2 - y1) / (maze.getHeight() * 2 - 1.0) } };
+				{ xScale, 0 },
+				{ 0, yScale } };
 		Matrix scaleTransform = new Matrix(scaleArray, scaleArray.length,
 				scaleArray[0].length);
 		ArrayList<Wall> scaledWalls = new ArrayList<Wall>();
@@ -388,34 +403,111 @@ public class FancyMaze3DComponent extends JComponent {
 		}
 		path.lineTo(0, 0);
 
+		// Draw hint path
+		if (hint) {
+			g2D.setColor(hintColor);
+			List<SimpleCoordinate> hintPath = Hinter.getPath(
+					maze,
+					new SimpleCoordinate((int) Math.floor(player.getPosition()
+							.getX() / 2), (int) Math.floor(player.getPosition()
+							.getY() / 2)), new SimpleCoordinate(
+							maze.getWidth() - 1, maze.getHeight() - 1));
+	
+			for (int i = 0; i < hintPath.size(); i++) {
+				SimpleCoordinate c = hintPath.get(i);
+				g2D.drawRect((int) (2 * c.getX() * xScale + 1), (int) (2 * c.getY()
+						* yScale + 1), (int) xScale, (int) yScale);
+				g2D.fillRect((int) (2 * c.getX() * xScale + 1), (int) (2 * c.getY()
+						* yScale + 1), (int) xScale, (int) yScale);
+	
+				if (i != hintPath.size() - 1) {
+					if (hintPath.get(i + 1).getX() > c.getX()) {
+						// the next one is to the right
+						g2D.drawRect((int) ((2 * c.getX() + 1) * xScale + 1),
+								(int) ((2 * c.getY()) * yScale + 1), (int) xScale,
+								(int) yScale);
+						g2D.fillRect((int) ((2 * c.getX() + 1) * xScale + 1),
+								(int) ((2 * c.getY()) * yScale + 1), (int) xScale,
+								(int) yScale);
+					} else if (hintPath.get(i + 1).getX() < c.getX()) {
+						// the next one is to the left
+						g2D.drawRect((int) ((2 * c.getX() - 1) * xScale + 1),
+								(int) ((2 * c.getY()) * yScale + 1), (int) xScale,
+								(int) yScale);
+						g2D.fillRect((int) ((2 * c.getX() - 1) * xScale + 1),
+								(int) ((2 * c.getY()) * yScale + 1), (int) xScale,
+								(int) yScale);
+					} else if (hintPath.get(i + 1).getY() > c.getY()) {
+						// the next one is below
+						g2D.drawRect((int) ((2 * c.getX()) * xScale + 1),
+								(int) ((2 * c.getY() + 1) * yScale + 1),
+								(int) xScale, (int) yScale);
+						g2D.fillRect((int) ((2 * c.getX()) * xScale + 1),
+								(int) ((2 * c.getY() + 1) * yScale + 1),
+								(int) xScale, (int) yScale);
+					} else if (hintPath.get(i + 1).getY() < c.getY()) {
+						// the next one is above
+						g2D.drawRect((int) ((2 * c.getX()) * xScale + 1),
+								(int) ((2 * c.getY() - 1) * yScale + 1),
+								(int) xScale, (int) yScale);
+						g2D.fillRect((int) ((2 * c.getX()) * xScale + 1),
+								(int) ((2 * c.getY() - 1) * yScale + 1),
+								(int) xScale, (int) yScale);
+					}
+				}
+	
+			}
+		}
+		
 		// Draw path
 		g2D.setColor(Color.BLACK);
 		g2D.draw(path);
 		g2D.setColor(new Color(255, 255, 255, 31));
 		g2D.fill(path);
 
+		g2D.setPaintMode();
+
 		// Scale and draw player
 		player.setScaleTransform(scaleTransform);
 		player.draw(g2D);
 
-		// Line scaledEndWall;
-		// for (Wall wall : endWalls) {
-		// scaledEndWall = new Line(scaleTransform.multiply(wall.getBase()));
-		// g2D.setColor(wall.getColor());
-		// g2D.drawLine((int) scaledEndWall.getX1(), (int)
-		// scaledEndWall.getY1(), (int) scaledEndWall.getX2(), (int)
-		// scaledEndWall.getY2());
-		// }
-		Point goalPosition = new Point(2 * maze.getWidth() - 1.5, 2 * maze
-				.getHeight() - 1.5);
+		// Draw the fog of war.
+		for (int rad = 0; rad < 1.5 * xScale; rad++) { // the radius around the
+														// player (1.5x a grid
+														// square)
+			for (double angle = 0.0; angle < 2 * Math.PI; angle += Math.PI / 60) {
+				// maths
+				int xPixel = (int) (player.position.getX() * 2 * xScale + rad
+						* Math.cos(angle));
+				int yPixel = (int) (player.position.getY() * 2 * yScale + rad
+						* Math.sin(angle));
+				// if it's on the minimap
+				if (xPixel >= 0 && xPixel < 2 * (x2 - x1) && yPixel >= 0
+						&& yPixel < 2 * (y2 - y1)) {
+					fog.setRGB(xPixel, yPixel, 0x00FFFFFF); // make it clear
+				}
+			}
+		}
+		g2D.drawImage(fog, 0, 0, x2 - x1 + 1, y2 - y1 + 1, null);
+
+		// The goal is at the bottom corner at all times
+		Point goalPosition = new Point(2 * maze.getWidth() - 1.5,
+				2 * maze.getHeight() - 1.5);
 		double goalWidth = 0.75;
 		double goalHeight = 0.75;
-		Quadrilateral goalQuad = new Quadrilateral(scaleTransform.multiply(new Quadrilateral(goalPosition.getX() - goalWidth / 2, goalPosition.getY()
-				- goalHeight / 2, goalPosition.getX() + goalWidth / 2, goalPosition.getY()
-				- goalHeight / 2, goalPosition.getX() + goalWidth / 2, goalPosition.getY()
-				+ goalHeight / 2, goalPosition.getX() - goalWidth / 2, goalPosition.getY()
-				+ goalHeight / 2)));
-		
+		// We make a Quadrilateral with appropriate size and position to
+		// represent the goal
+		Quadrilateral goalQuad = new Quadrilateral(
+				scaleTransform.multiply(new Quadrilateral(goalPosition.getX()
+						- goalWidth / 2, goalPosition.getY() - goalHeight / 2,
+						goalPosition.getX() + goalWidth / 2, goalPosition
+								.getY() - goalHeight / 2, goalPosition.getX()
+								+ goalWidth / 2, goalPosition.getY()
+								+ goalHeight / 2, goalPosition.getX()
+								- goalWidth / 2, goalPosition.getY()
+								+ goalHeight / 2)));
+
+		// and draw it as a circle
 		g2D.setColor(goalColor);
 		g2D.fillOval((int) goalQuad.getX(1), (int) goalQuad.getY(1),
 				(int) (goalQuad.getX(3) - goalQuad.getX(1)),
@@ -448,7 +540,6 @@ public class FancyMaze3DComponent extends JComponent {
 		pCS.firePropertyChange("muted", !muted, muted);
 	}
 
-
 	/**
 	 * Unmutes the audio and sends off event
 	 */
@@ -456,7 +547,6 @@ public class FancyMaze3DComponent extends JComponent {
 		muted = false;
 		pCS.firePropertyChange("muted", !muted, muted);
 	}
-
 
 	/**
 	 * Getter for muted
@@ -538,6 +628,7 @@ public class FancyMaze3DComponent extends JComponent {
 	private boolean running;
 	private boolean paused;
 	private boolean muted;
+	private boolean hint;
 
 	// Maze data
 	private SimpleMaze maze;
@@ -548,7 +639,10 @@ public class FancyMaze3DComponent extends JComponent {
 	// Custom keyboard input
 	private KeyboardInput keyboard;
 
+	// Colours and Images for the minimap
 	private Color goalColor;
+	private Color hintColor;
+	private BufferedImage fog;
 
 	// Property change event thing
 	private PropertyChangeSupport pCS;
