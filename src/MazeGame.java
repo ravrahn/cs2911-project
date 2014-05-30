@@ -75,7 +75,7 @@ public class MazeGame {
 		newGameButton.setMinimumSize(new Dimension(128, 64));
 		newGameButton.setMaximumSize(new Dimension(128, 64));
 		newGameButton.setBackground(new Color(0xededed));
-		newGameButton.setFont(new Font("Roboto Condensed", Font.PLAIN, 24));
+		newGameButton.setFont(new Font("Open Sans", Font.PLAIN, 24));
 		newGameButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		newGameButton.setEnabled(true);
 		newGameButton.setVisible(true);
@@ -85,18 +85,19 @@ public class MazeGame {
 		pauseButton.setMinimumSize(new Dimension(128, 64));
 		pauseButton.setMaximumSize(new Dimension(128, 64));
 		pauseButton.setBackground(new Color(0xededed));
-		pauseButton.setFont(new Font("Roboto Condensed", Font.PLAIN, 24));
+		pauseButton.setFont(new Font("Open Sans", Font.PLAIN, 24));
 		pauseButton.setText("Unpause");
 		pauseButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		pauseButton.setEnabled(false);
 		pauseButton.setVisible(false);
+		
 
 		final JButton helpButton = new JButton();
 		helpButton.setPreferredSize(new Dimension(128, 64));
 		helpButton.setMinimumSize(new Dimension(128, 64));
 		helpButton.setMaximumSize(new Dimension(128, 64));
 		helpButton.setBackground(new Color(0xededed));
-		helpButton.setFont(new Font("Roboto Condensed", Font.PLAIN, 24));
+		helpButton.setFont(new Font("Open Sans", Font.PLAIN, 24));
 		helpButton.setText("Help");
 		helpButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		helpButton.setEnabled(true);
@@ -107,18 +108,28 @@ public class MazeGame {
 		audioButton.setMinimumSize(new Dimension(128, 64));
 		audioButton.setMaximumSize(new Dimension(128, 64));
 		audioButton.setBackground(new Color(0xededed));
-		audioButton.setFont(new Font("Roboto Condensed", Font.PLAIN, 24));
+		audioButton.setFont(new Font("Open Sans", Font.PLAIN, 24));
 		audioButton.setText("Mute");
 		audioButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		audioButton.setEnabled(false);
 		audioButton.setVisible(false);
+		
+		final JLabel victoryLabel = new JLabel();
+		victoryLabel.setPreferredSize(new Dimension(128, 64));
+		victoryLabel.setMinimumSize(new Dimension(128, 64));
+		victoryLabel.setMaximumSize(new Dimension(128, 64));
+		victoryLabel.setFont(new Font("Open Sans", Font.PLAIN, 36));
+		victoryLabel.setText("You win!");
+		victoryLabel.setOpaque(true);
+		victoryLabel.setEnabled(false);
+		victoryLabel.setVisible(false);
 
 		final JButton quitButton = new JButton();
 		quitButton.setPreferredSize(new Dimension(128, 64));
 		quitButton.setMinimumSize(new Dimension(128, 64));
 		quitButton.setMaximumSize(new Dimension(128, 64));
 		quitButton.setBackground(new Color(0xededed));
-		quitButton.setFont(new Font("Roboto Condensed", Font.PLAIN, 24));
+		quitButton.setFont(new Font("Open Sans", Font.PLAIN, 24));
 		quitButton.setText("Quit");
 		quitButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		quitButton.setEnabled(true);
@@ -175,6 +186,8 @@ public class MazeGame {
 						pauseButton.setVisible(true);
 						helpButton.setEnabled(false);
 						helpButton.setVisible(false);
+						victoryLabel.setEnabled(false);
+						victoryLabel.setVisible(false);
 						audioButton.setEnabled(true);
 						audioButton.setVisible(true);
 						menuPane.setEnabled(true);
@@ -199,8 +212,8 @@ public class MazeGame {
 					newGameButton.setVisible(true);
 					pauseButton.setEnabled(false);
 					pauseButton.setVisible(false);
-					helpButton.setEnabled(true);
-					helpButton.setVisible(true);
+					victoryLabel.setEnabled(true);
+					victoryLabel.setVisible(true);
 					audioButton.setEnabled(false);
 					audioButton.setVisible(false);
 				}
@@ -210,7 +223,7 @@ public class MazeGame {
 		JLabel titleLabel = new JLabel("Maze");
 		titleLabel.setBorder(new EmptyBorder(0, 28, 0, 28));
 		titleLabel.setVerticalAlignment(SwingConstants.CENTER);
-		titleLabel.setFont(new Font("Roboto Slab", Font.PLAIN, 96));
+		titleLabel.setFont(new Font("Open Sans", Font.PLAIN, 96));
 		menuPane.add(titleLabel);
 
 		menuPane.add(Box.createHorizontalGlue());
@@ -241,6 +254,7 @@ public class MazeGame {
 		frame.setMinimumSize(new Dimension(800, 600));
 		frame.setResizable(false);
 		frame.pack();
+		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
 }
