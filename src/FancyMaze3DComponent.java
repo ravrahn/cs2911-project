@@ -23,6 +23,7 @@ import javax.swing.JComponent;
  */
 public class FancyMaze3DComponent extends JComponent {
 	public FancyMaze3DComponent() {
+		goalColor = new Color(0xc1bb00);
 		pCS = new PropertyChangeSupport(this);
 		new AudioThread().start();
 
@@ -40,7 +41,7 @@ public class FancyMaze3DComponent extends JComponent {
 				}
 			}
 		});
-		
+
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -49,7 +50,7 @@ public class FancyMaze3DComponent extends JComponent {
 				}
 			}
 		});
-		
+
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -76,15 +77,15 @@ public class FancyMaze3DComponent extends JComponent {
 		mazeWalls = maze.toWalls();
 		player = new Player();
 		System.gc();
-		
+
 		endWalls = new ArrayList<Wall>();
-		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.6, 2 * maze
-				.getHeight() - 1.6, 2 * maze.getWidth() - 1.4, 2 * maze
-				.getHeight() - 1.4), Color.BLACK));
-		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.4, 2 * maze
-				.getHeight() - 1.6, 2 * maze.getWidth() - 1.6, 2 * maze
-				.getHeight() - 1.4), Color.BLACK));
-		
+		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.7, 2 * maze
+				.getHeight() - 1.7, 2 * maze.getWidth() - 1.2, 2 * maze
+				.getHeight() - 1.2), goalColor));
+		endWalls.add(new Wall(new Line(2 * maze.getWidth() - 1.2, 2 * maze
+				.getHeight() - 1.7, 2 * maze.getWidth() - 1.7, 2 * maze
+				.getHeight() - 1.2), goalColor));
+
 		Thread loop = new Thread() {
 			public void run() {
 				gameLoop();
@@ -194,7 +195,7 @@ public class FancyMaze3DComponent extends JComponent {
 			player.addAngle(-Math.PI / 36);
 		}
 	}
-	
+
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -216,8 +217,7 @@ public class FancyMaze3DComponent extends JComponent {
 		}
 
 		drawMaze3D(g2D);
-		drawMinimap(g2D, getWidth() - 220, 16,
-				getWidth() - 16, 220);
+		drawMinimap(g2D, getWidth() - 220, 16, getWidth() - 16, 220);
 
 		g2D.setColor(Color.BLACK);
 		g2D.drawString("FPS " + fps, 5, 10);
@@ -274,14 +274,17 @@ public class FancyMaze3DComponent extends JComponent {
 					color = endWalls.get(1).getColor();
 				}
 			}
-			int newRed = Math.min((int) (color.getRed() / minLength), color.getRed());
-			int newGreen = Math.min((int) (color.getGreen() / minLength), color.getGreen());
-			int newBlue = Math.min((int) (color.getBlue() / minLength), color.getBlue());
-			
-			newRed = Math.max(newRed, color.getRed()/4);
-			newGreen = Math.max(newGreen, color.getGreen()/4);
-			newBlue = Math.max(newBlue, color.getBlue()/4);
-			
+			int newRed = Math.min((int) (color.getRed() / minLength),
+					color.getRed());
+			int newGreen = Math.min((int) (color.getGreen() / minLength),
+					color.getGreen());
+			int newBlue = Math.min((int) (color.getBlue() / minLength),
+					color.getBlue());
+
+			newRed = Math.max(newRed, color.getRed() / 4);
+			newGreen = Math.max(newGreen, color.getGreen() / 4);
+			newBlue = Math.max(newBlue, color.getBlue() / 4);
+
 			color = new Color(newRed, newGreen, newBlue);
 			g2D.setColor(color);
 			g2D.drawLine(i, (getHeight() / 2) - height, i, (getHeight() / 2)
@@ -316,12 +319,29 @@ public class FancyMaze3DComponent extends JComponent {
 		g2D.fill(path);
 		player.setScaleTransform(scaleTransform);
 		player.draw(g2D);
-		Line scaledEndWall;
-		for (Wall wall : endWalls) {
-			scaledEndWall = new Line(scaleTransform.multiply(wall.getBase()));
-			g2D.setColor(wall.getColor());
-			g2D.drawLine((int) scaledEndWall.getX1(), (int) scaledEndWall.getY1(), (int) scaledEndWall.getX2(), (int) scaledEndWall.getY2());
-		}
+		// Line scaledEndWall;
+		// for (Wall wall : endWalls) {
+		// scaledEndWall = new Line(scaleTransform.multiply(wall.getBase()));
+		// g2D.setColor(wall.getColor());
+		// g2D.drawLine((int) scaledEndWall.getX1(), (int)
+		// scaledEndWall.getY1(), (int) scaledEndWall.getX2(), (int)
+		// scaledEndWall.getY2());
+		// }
+		Point goalPosition = new Point(2 * maze.getWidth() - 1.5, 2 * maze
+				.getHeight() - 1.5);
+		double goalWidth = 0.75;
+		double goalHeight = 0.75;
+		Quadrilateral goalQuad = new Quadrilateral(scaleTransform.multiply(new Quadrilateral(goalPosition.getX() - goalWidth / 2, goalPosition.getY()
+				- goalHeight / 2, goalPosition.getX() + goalWidth / 2, goalPosition.getY()
+				- goalHeight / 2, goalPosition.getX() + goalWidth / 2, goalPosition.getY()
+				+ goalHeight / 2, goalPosition.getX() - goalWidth / 2, goalPosition.getY()
+				+ goalHeight / 2)));
+		
+		g2D.setColor(goalColor);
+		g2D.fillOval((int) goalQuad.getX(1), (int) goalQuad.getY(1),
+				(int) (goalQuad.getX(3) - goalQuad.getX(1)),
+				(int) (goalQuad.getY(3) - goalQuad.getY(1)));
+
 		g2D.translate(-x1, -y1);
 	}
 
@@ -333,52 +353,58 @@ public class FancyMaze3DComponent extends JComponent {
 	public void resume() {
 		paused = false;
 	}
-	
+
 	public void mute() {
 		muted = true;
 		pCS.firePropertyChange("muted", !muted, muted);
 	}
-	
+
 	public void unMute() {
 		muted = false;
 		pCS.firePropertyChange("muted", !muted, muted);
 	}
-	
+
 	public boolean isMuted() {
 		return muted;
 	}
-	
+
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		pCS.addPropertyChangeListener(listener);
 	}
-	
+
 	@Override
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		pCS.removePropertyChangeListener(listener);
 	}
-	
+
 	private class AudioThread extends Thread {
 		byte tempBuffer[] = new byte[5];
+
 		public void run() {
 			try {
 				while (true) {
-					audioInputStream = AudioSystem.getAudioInputStream(new File("mountain_king.wav"));
+					audioInputStream = AudioSystem
+							.getAudioInputStream(new File("mountain_king.wav"));
 					audioFormat = audioInputStream.getFormat();
-					
-					DataLine.Info dataLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
-					sourceDataLine = (SourceDataLine) AudioSystem.getLine(dataLineInfo);
-					
+
+					DataLine.Info dataLineInfo = new DataLine.Info(
+							SourceDataLine.class, audioFormat);
+					sourceDataLine = (SourceDataLine) AudioSystem
+							.getLine(dataLineInfo);
+
 					sourceDataLine.open(audioFormat);
 					sourceDataLine.start();
-					int cnt = audioInputStream.read(tempBuffer, 0, tempBuffer.length);
+					int cnt = audioInputStream.read(tempBuffer, 0,
+							tempBuffer.length);
 					while (cnt != -1) {
 						if (!muted) {
 							sourceDataLine.write(tempBuffer, 0, cnt);
 						}
-						cnt = audioInputStream.read(tempBuffer, 0, tempBuffer.length);
+						cnt = audioInputStream.read(tempBuffer, 0,
+								tempBuffer.length);
 					}
-					
+
 					sourceDataLine.drain();
 					sourceDataLine.close();
 					System.out.println("Audio Closed");
@@ -388,7 +414,7 @@ public class FancyMaze3DComponent extends JComponent {
 				System.exit(0);
 			}
 		}
-		
+
 		AudioFormat audioFormat;
 		AudioInputStream audioInputStream;
 		SourceDataLine sourceDataLine;
@@ -402,7 +428,9 @@ public class FancyMaze3DComponent extends JComponent {
 	private ArrayList<Wall> endWalls;
 	private Player player;
 	private KeyboardInput keyboard;
-	
+
+	private Color goalColor;
+
 	private PropertyChangeSupport pCS;
 
 	private int fps;
