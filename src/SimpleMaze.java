@@ -8,6 +8,14 @@ import java.util.Random;
  * @author Gabriel
  */
 public class SimpleMaze implements Maze {
+	/**
+	 * Constructs a maze of given width and height
+	 * 
+	 * @param width
+	 *            The width
+	 * @param height
+	 *            The height
+	 */
 	public SimpleMaze(int width, int height) {
 		if (width <= 0) {
 			throw new IllegalArgumentException("Width > 0 pls");
@@ -18,7 +26,7 @@ public class SimpleMaze implements Maze {
 		this.width = width;
 		this.height = height;
 		edges = new boolean[4][width][height];
-		
+
 		// Setting up for Randomised Prim's
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < width; j++) {
@@ -27,27 +35,29 @@ public class SimpleMaze implements Maze {
 				}
 			}
 		}
-		
+
 		Random random = new Random();
 		boolean[][] inMaze = new boolean[width][height];
 		Coordinate c = new SimpleCoordinate(0, 0);
 		ArrayList<Coordinate> openSet = new ArrayList<Coordinate>();
 		openSet.add(c);
-		
+
 		ArrayList<Integer> edgeOptions;
 		ArrayList<Integer> cellOptions;
 		int edge;
-		
+
+		// Prims
 		while (!openSet.isEmpty()) {
 			c = openSet.remove(random.nextInt(openSet.size()));
 			inMaze[c.getX()][c.getY()] = true;
-			
+
 			// Array of possible edges to add
 			edgeOptions = new ArrayList<Integer>();
 			// Array of cells to expand to
 			cellOptions = new ArrayList<Integer>();
-			for (int i = 0; i < 4; i++) cellOptions.add(i);
-			
+			for (int i = 0; i < 4; i++)
+				cellOptions.add(i);
+
 			// Consider top edge if possible
 			if (c.getY() - 1 < 0) {
 				cellOptions.remove(UP);
@@ -76,31 +86,41 @@ public class SimpleMaze implements Maze {
 				edgeOptions.add(LEFT);
 				cellOptions.remove(LEFT);
 			}
-			
+
 			if (edgeOptions.size() > 0) {
 				edge = edgeOptions.get(random.nextInt(edgeOptions.size()));
 				edges[edge][c.getX()][c.getY()] = false;
 				// Lots of hax
-				edges[(edge + 2) % 4][c.getX() + (int) Math.round(Math.sin(edge * Math.PI / 2))][c.getY() - (int) Math.round(Math.cos(edge * Math.PI / 2))] = false;
+				edges[(edge + 2) % 4][c.getX()
+						+ (int) Math.round(Math.sin(edge * Math.PI / 2))][c
+						.getY()
+						- (int) Math.round(Math.cos(edge * Math.PI / 2))] = false;
 			}
-			
+
 			// Expand
 			for (Integer direction : cellOptions) {
 				// Lots of hax again
-				Coordinate test = new SimpleCoordinate(c.getX() + (int) Math.round(Math.sin(direction * Math.PI / 2)), c.getY() - (int) Math.round(Math.cos(direction * Math.PI / 2)));
+				Coordinate test = new SimpleCoordinate(c.getX()
+						+ (int) Math.round(Math.sin(direction * Math.PI / 2)),
+						c.getY()
+								- (int) Math.round(Math.cos(direction * Math.PI
+										/ 2)));
 				if (!openSet.contains(test)) {
 					openSet.add(test);
 				}
 			}
 		}
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see Maze#getWall(Coordinate, int)
 	 */
 	@Override
 	public boolean getWall(Coordinate c, int direction) {
-		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0 || c.getY() >= height) {
+		if (c.getX() < 0 || c.getX() >= width || c.getY() < 0
+				|| c.getY() >= height) {
 			throw new IllegalArgumentException("Outside bounds of maze");
 		}
 		if (direction < 0 || direction > 3) {
@@ -108,23 +128,27 @@ public class SimpleMaze implements Maze {
 		}
 		return edges[direction][c.getX()][c.getY()];
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see Maze#getWidth()
 	 */
 	@Override
 	public int getWidth() {
 		return width;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see Maze@getHeight()
 	 */
 	@Override
 	public int getHeight() {
 		return height;
 	}
-	
+
 	public void drawMaze() {
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
@@ -136,7 +160,7 @@ public class SimpleMaze implements Maze {
 				}
 			}
 			System.out.println("+");
-			
+
 			for (int x = 0; x < width; x++) {
 				if (getWall(new SimpleCoordinate(x, y), LEFT)) {
 					System.out.print("|");
@@ -151,7 +175,7 @@ public class SimpleMaze implements Maze {
 				System.out.println(" ");
 			}
 		}
-		
+
 		for (int x = 0; x < width; x++) {
 			System.out.print("+");
 			if (getWall(new SimpleCoordinate(x, height - 1), DOWN)) {
@@ -163,7 +187,12 @@ public class SimpleMaze implements Maze {
 		System.out.println("+");
 		System.out.println();
 	}
-	
+
+	/**
+	 * Converts the maze into walls in euclidean space
+	 * 
+	 * @return The walls
+	 */
 	public ArrayList<Wall> toWalls() {
 		ArrayList<Wall> walls = new ArrayList<Wall>();
 		Coordinate currCoord = new SimpleCoordinate(0, 0);
@@ -184,11 +213,11 @@ public class SimpleMaze implements Maze {
 			} else if (currDirection == Maze.LEFT) {
 				currPoint.setY(lastPoint.getY() - length);
 			}
-			
+
 			// If no wall up (relative to currDirection)
 			if (getWall(currCoord, currDirection)) {
 				length++;
-				
+
 				// If wall to right
 				if (getWall(currCoord, (currDirection + 1) % 4)) {
 					Point newPoint = new Point(lastPoint);
@@ -201,9 +230,10 @@ public class SimpleMaze implements Maze {
 					} else if (currDirection == Maze.LEFT) {
 						newPoint.setY(newPoint.getY() - length);
 					}
-					
+
 					// Add line
-					walls.add(new Wall(new Line(lastPoint, newPoint), directionToColor(currDirection)));
+					walls.add(new Wall(new Line(lastPoint, newPoint),
+							directionToColor(currDirection)));
 					// Reset points
 					lastPoint = newPoint;
 					length = 0;
@@ -212,7 +242,7 @@ public class SimpleMaze implements Maze {
 				} else {
 					// No wall to right
 					length++;
-					
+
 					// Move right
 					if (currDirection == Maze.UP) {
 						currCoord.setX(currCoord.getX() + 1);
@@ -227,11 +257,12 @@ public class SimpleMaze implements Maze {
 			} else {
 				// No wall up
 				// Add line
-				walls.add(new Wall(new Line(lastPoint, currPoint), directionToColor(currDirection)));
+				walls.add(new Wall(new Line(lastPoint, currPoint),
+						directionToColor(currDirection)));
 				// Reset points
 				lastPoint = currPoint;
 				length = 1;
-				
+
 				// Move up
 				if (currDirection == Maze.UP) {
 					currCoord.setY(currCoord.getY() - 1);
@@ -249,12 +280,20 @@ public class SimpleMaze implements Maze {
 		if (walls.get(walls.size() - 1).getBase().getX1() == 0) {
 			walls.get(walls.size() - 1).getBase().setY2(0);
 		} else {
-			walls.add(new Wall(new Line(0, 1, 0, 0), directionToColor(Maze.LEFT)));
+			walls.add(new Wall(new Line(0, 1, 0, 0),
+					directionToColor(Maze.LEFT)));
 		}
-		
+
 		return walls;
 	}
-	
+
+	/**
+	 * Converts direction to color
+	 * 
+	 * @param direction
+	 *            The direction faced
+	 * @return The color of the wall
+	 */
 	protected Color directionToColor(int direction) {
 		if (direction < 0 || direction > 3) {
 			throw new IllegalArgumentException("Invalid direction");
@@ -273,7 +312,7 @@ public class SimpleMaze implements Maze {
 		}
 		return Color.BLACK;
 	}
-	
+
 	int width;
 	int height;
 	boolean[][][] edges;

@@ -29,7 +29,8 @@ public interface Maze {
 	 * @return The height of the maze
 	 */
 	public int getHeight();
-	
+
+	// Constants
 	public static final Integer UP = 0;
 	public static final Integer RIGHT = 1;
 	public static final Integer DOWN = 2;

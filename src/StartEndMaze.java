@@ -3,6 +3,8 @@
  * 
  * @author Gabriel
  */
+
+// Unused
 public class StartEndMaze implements Maze {
 	public StartEndMaze(int width, int height, Coordinate start, Coordinate end) {
 		backMaze = new SimpleMaze(width, height);

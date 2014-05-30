@@ -23,25 +23,26 @@ import javax.swing.border.EmptyBorder;
 /**
  * Maze Game
  * 
- * @author Gabriel
+ * @author Gabriel, Owen
  */
 public class MazeGame {
-	
-	public static void main(String[] args) throws IOException, UnsupportedAudioFileException, LineUnavailableException {
+
+	public static void main(String[] args) throws IOException,
+			UnsupportedAudioFileException, LineUnavailableException {
 		final JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
 		final JPanel gamePane = new JPanel();
 		gamePane.setLayout(new BorderLayout());
-		
+
 		frame.setContentPane(gamePane);
-		
+
 		final JPanel menuPane = new MenuPanel();
 		menuPane.setBounds(0, 0, 800, 600);
 		menuPane.setLayout(new BoxLayout(menuPane, BoxLayout.X_AXIS));
-		
+
 		final FancyMaze3DComponent scene = new FancyMaze3DComponent();
-		
+
 		final JButton newGameButton = new JButton();
 		newGameButton.setText("Play");
 		newGameButton.setPreferredSize(new Dimension(128, 64));
@@ -52,7 +53,7 @@ public class MazeGame {
 		newGameButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		newGameButton.setEnabled(true);
 		newGameButton.setVisible(true);
-		
+
 		final JButton pauseButton = new JButton();
 		pauseButton.setPreferredSize(new Dimension(128, 64));
 		pauseButton.setMinimumSize(new Dimension(128, 64));
@@ -63,7 +64,7 @@ public class MazeGame {
 		pauseButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		pauseButton.setEnabled(false);
 		pauseButton.setVisible(false);
-		
+
 		final JButton helpButton = new JButton();
 		helpButton.setPreferredSize(new Dimension(128, 64));
 		helpButton.setMinimumSize(new Dimension(128, 64));
@@ -74,7 +75,7 @@ public class MazeGame {
 		helpButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		helpButton.setEnabled(true);
 		helpButton.setVisible(true);
-		
+
 		final JButton audioButton = new JButton();
 		audioButton.setPreferredSize(new Dimension(128, 64));
 		audioButton.setMinimumSize(new Dimension(128, 64));
@@ -85,7 +86,7 @@ public class MazeGame {
 		audioButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		audioButton.setEnabled(false);
 		audioButton.setVisible(false);
-		
+
 		final JButton quitButton = new JButton();
 		quitButton.setPreferredSize(new Dimension(128, 64));
 		quitButton.setMinimumSize(new Dimension(128, 64));
@@ -96,8 +97,7 @@ public class MazeGame {
 		quitButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		quitButton.setEnabled(true);
 		quitButton.setVisible(true);
-		
-		
+
 		newGameButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -112,14 +112,14 @@ public class MazeGame {
 				helpButton.setVisible(false);
 			}
 		});
-		
+
 		quitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
 			}
 		});
-		
+
 		pauseButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -128,7 +128,7 @@ public class MazeGame {
 				menuPane.setVisible(false);
 			}
 		});
-		
+
 		audioButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -139,7 +139,7 @@ public class MazeGame {
 				}
 			}
 		});
-		
+
 		scene.addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
@@ -180,21 +180,21 @@ public class MazeGame {
 				}
 			}
 		});
-		
+
 		JLabel titleLabel = new JLabel("Maze");
 		titleLabel.setBorder(new EmptyBorder(0, 28, 0, 28));
 		titleLabel.setVerticalAlignment(SwingConstants.CENTER);
 		titleLabel.setFont(new Font("Roboto Slab", Font.PLAIN, 96));
 		menuPane.add(titleLabel);
-		
+
 		menuPane.add(Box.createHorizontalGlue());
-		
+
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setPreferredSize(new Dimension(128, menuPane.getHeight()));
 		panel.setOpaque(false);
 		panel.add(Box.createVerticalGlue());
-		
+
 		// top buttons
 		panel.add(newGameButton);
 		panel.add(pauseButton);
@@ -206,10 +206,10 @@ public class MazeGame {
 		// bottom buttons
 		panel.add(quitButton);
 		panel.add(Box.createVerticalGlue());
-		
+
 		menuPane.add(panel);
 		menuPane.add(Box.createHorizontalGlue());
-		
+
 		gamePane.add(menuPane);
 		gamePane.add(scene, BorderLayout.CENTER);
 		frame.setMinimumSize(new Dimension(800, 600));
