@@ -66,13 +66,12 @@ public class FogAlphaComposite implements Composite, CompositeContext {
                 src.getPixel( x, y, spixel );
                 dstIn.getPixel( x, y, dpixel );
  
-                // Use the destination color (except use the source alpha, below):
+                // Use the fog
                 System.arraycopy( dpixel, 0, opixel, 0, opixel.length );
  
                 final int dalpha = dpixel[ alphaIndex ];
+                // if it's revealed, use the maze
                 if ( 0 == dalpha ) {
-                    // Use the source alpha:
-                    opixel[ alphaIndex ] = dpixel[ alphaIndex ];
                     System.arraycopy( spixel, 0, opixel, 0, opixel.length );
                 }
  

@@ -92,6 +92,8 @@ public class FancyMaze3DComponent extends JComponent {
 			fog = null;
 		}
 
+		walls = drawWalls(getWidth() - 220, 16, getWidth() - 16, 220);
+
 		// initialise the keyboard listener
 		if (keyboard != null) {
 			removeKeyListener(keyboard);
@@ -259,6 +261,10 @@ public class FancyMaze3DComponent extends JComponent {
 		g2D.setColor(Color.BLACK);
 		g2D.drawString(fps + " FPS", 5, 15);
 		g2D.drawString("Pause: P", 5, 30);
+		g2D.drawString("Hint: E", 5, 45);
+		g2D.drawString("Mute: M", 5, 60);
+		g2D.drawString("Move: WASD", 5, 75);
+		
 
 		// Update frame count
 		frameCount++;
@@ -373,23 +379,19 @@ public class FancyMaze3DComponent extends JComponent {
 	 * @precondition x2 > x1, y2 > y1
 	 */
 	private void drawMinimap(Graphics g, int x1, int y1, int x2, int y2) {
-		
-		BufferedImage buff = new BufferedImage(x2 - x1 + 1, y2 - y1  + 1, BufferedImage.TYPE_INT_ARGB);
 
-//		Graphics2D g2D = (Graphics2D) g;
+		// We create the minimap by storing it in a buffered image
+		BufferedImage buff = new BufferedImage(x2 - x1 + 1, y2 - y1 + 1,
+				BufferedImage.TYPE_INT_ARGB);
+
 		Graphics2D g2D = buff.createGraphics();
-		// Move to position
-//		g2D.translate(x1, y1);
-		// Draw background
-//		g2D.setColor(new Color(255, 255, 255, 63));
-//		g2D.fillRect(0, 0, x2 - x1 + 1, y2 - y1 + 1);
-		
+
 		double xScale = (x2 - x1) / (maze.getWidth() * 2 - 1.0);
 		double yScale = (y2 - y1) / (maze.getHeight() * 2 - 1.0);
-		
-		for (int rad = 0; rad < 1.5 * xScale; rad++) { 
-			// the radius around the player (1.5x a grid square)
-			for (double angle = 0.0; angle < 2 * Math.PI; angle += Math.PI / 60) {
+
+		for (int rad = 0; rad < 2 * xScale; rad++) {
+			// the radius around the player (2x a grid square)
+			for (double angle = 0.0; angle < 2 * Math.PI; angle += Math.PI / 80) {
 				// maths
 				int xPixel = (int) (player.position.getX() * 2 * xScale + rad
 						* Math.cos(angle));
@@ -403,30 +405,14 @@ public class FancyMaze3DComponent extends JComponent {
 			}
 		}
 		g2D.drawImage(fog, 0, 0, x2 - x1 + 1, y2 - y1 + 1, null);
-		
+
 		FogAlphaComposite ac = new FogAlphaComposite(3);
 		g2D.setComposite(ac);
-		
 
 		// Scale walls to correct draw length
-		double[][] scaleArray = {
-				{ xScale, 0 },
-				{ 0, yScale } };
+		double[][] scaleArray = { { xScale, 0 }, { 0, yScale } };
 		Matrix scaleTransform = new Matrix(scaleArray, scaleArray.length,
 				scaleArray[0].length);
-		ArrayList<Wall> scaledWalls = new ArrayList<Wall>();
-		for (Wall wall : mazeWalls) {
-			scaledWalls.add(new Wall(new Line(scaleTransform.multiply(wall
-					.getBase())), wall.getColor()));
-		}
-
-		// Add walls to path
-		Path2D.Float path = new Path2D.Float();
-		path.moveTo(0, 0);
-		for (Wall wall : scaledWalls) {
-			path.lineTo(wall.getBase().getX1(), wall.getBase().getY1());
-		}
-		path.lineTo(0, 0);
 
 		// Draw hint path
 		if (hint) {
@@ -437,90 +423,51 @@ public class FancyMaze3DComponent extends JComponent {
 							.getX() / 2), (int) Math.floor(player.getPosition()
 							.getY() / 2)), new SimpleCoordinate(
 							maze.getWidth() - 1, maze.getHeight() - 1));
-	
+
 			for (int i = 0; i < hintPath.size(); i++) {
 				SimpleCoordinate c = hintPath.get(i);
-				g2D.drawRect((int) (2 * c.getX() * xScale + 1), (int) (2 * c.getY()
-						* yScale + 1), (int) xScale, (int) yScale);
-				g2D.fillRect((int) (2 * c.getX() * xScale + 1), (int) (2 * c.getY()
-						* yScale + 1), (int) xScale, (int) yScale);
-	
+				g2D.drawRect((int) (2 * c.getX() * xScale + 1),
+						(int) (2 * c.getY() * yScale + 1), (int) xScale,
+						(int) yScale);
+				g2D.fillRect((int) (2 * c.getX() * xScale + 1),
+						(int) (2 * c.getY() * yScale + 1), (int) xScale,
+						(int) yScale);
+
 				if (i != hintPath.size() - 1) {
+					int hintX = 0;
+					int hintY = 0;
 					if (hintPath.get(i + 1).getX() > c.getX()) {
 						// the next one is to the right
-						g2D.drawRect((int) ((2 * c.getX() + 1) * xScale + 1),
-								(int) ((2 * c.getY()) * yScale + 1), (int) xScale,
-								(int) yScale);
-						g2D.fillRect((int) ((2 * c.getX() + 1) * xScale + 1),
-								(int) ((2 * c.getY()) * yScale + 1), (int) xScale,
-								(int) yScale);
+						hintX = (int) ((2 * c.getX() + 1) * xScale + 1);
+						hintY = (int) ((2 * c.getY()) * yScale + 1);
 					} else if (hintPath.get(i + 1).getX() < c.getX()) {
 						// the next one is to the left
-						g2D.drawRect((int) ((2 * c.getX() - 1) * xScale + 1),
-								(int) ((2 * c.getY()) * yScale + 1), (int) xScale,
-								(int) yScale);
-						g2D.fillRect((int) ((2 * c.getX() - 1) * xScale + 1),
-								(int) ((2 * c.getY()) * yScale + 1), (int) xScale,
-								(int) yScale);
+						hintX = (int) ((2 * c.getX() - 1) * xScale + 1);
+						hintY = (int) ((2 * c.getY()) * yScale + 1);
 					} else if (hintPath.get(i + 1).getY() > c.getY()) {
 						// the next one is below
-						g2D.drawRect((int) ((2 * c.getX()) * xScale + 1),
-								(int) ((2 * c.getY() + 1) * yScale + 1),
-								(int) xScale, (int) yScale);
-						g2D.fillRect((int) ((2 * c.getX()) * xScale + 1),
-								(int) ((2 * c.getY() + 1) * yScale + 1),
-								(int) xScale, (int) yScale);
+						hintX = (int) ((2 * c.getX()) * xScale + 1);
+						hintY = (int) ((2 * c.getY() + 1) * yScale + 1);
 					} else if (hintPath.get(i + 1).getY() < c.getY()) {
 						// the next one is above
-						g2D.drawRect((int) ((2 * c.getX()) * xScale + 1),
-								(int) ((2 * c.getY() - 1) * yScale + 1),
-								(int) xScale, (int) yScale);
-						g2D.fillRect((int) ((2 * c.getX()) * xScale + 1),
-								(int) ((2 * c.getY() - 1) * yScale + 1),
-								(int) xScale, (int) yScale);
+						hintX = (int) ((2 * c.getX()) * xScale + 1);
+						hintY = (int) ((2 * c.getY() - 1) * yScale + 1);
 					}
+					g2D.drawRect(hintX, hintY, (int) xScale, (int) yScale);
+					g2D.fillRect(hintX,	hintY, (int) xScale, (int) yScale);
 				}
-	
+
 			}
 		}
 		
-		// Draw path
-		g2D.setColor(Color.BLACK);
-		g2D.draw(path);
-		g2D.setColor(new Color(255, 255, 255, 31));
-		g2D.fill(path);
+		g2D.drawImage(walls, 0, 0, null);
 
 		g2D.setPaintMode();
 
 		// Scale and draw player
 		player.setScaleTransform(scaleTransform);
 		player.draw(g2D);
-		
-		// Save the current composite for later use
-//		Composite oldComposite = g2D.getComposite();
 
-		// Draw the fog of war.
-//		FogAlphaComposite ac = new FogAlphaComposite(3);
-//		g2D.setComposite(ac);
-//		for (int rad = 0; rad < 1.5 * xScale; rad++) { 
-//			// the radius around the player (1.5x a grid square)
-//			for (double angle = 0.0; angle < 2 * Math.PI; angle += Math.PI / 60) {
-//				// maths
-//				int xPixel = (int) (player.position.getX() * 2 * xScale + rad
-//						* Math.cos(angle));
-//				int yPixel = (int) (player.position.getY() * 2 * yScale + rad
-//						* Math.sin(angle));
-//				// if it's on the minimap
-//				if (xPixel >= 0 && xPixel < 2 * (x2 - x1) && yPixel >= 0
-//						&& yPixel < 2 * (y2 - y1)) {
-//					fog.setRGB(xPixel, yPixel, 0x00FFFFFF); // make it clear
-//				}
-//			}
-//		}
-//		g2D.drawImage(fog, 0, 0, x2 - x1 + 1, y2 - y1 + 1, null);
-
-//		g2D.setComposite(oldComposite);
-		
 		// The goal is at the bottom corner at all times
 		Point goalPosition = new Point(2 * maze.getWidth() - 1.5,
 				2 * maze.getHeight() - 1.5);
@@ -545,9 +492,48 @@ public class FancyMaze3DComponent extends JComponent {
 				(int) (goalQuad.getY(3) - goalQuad.getY(1)));
 
 		// Return graphics to original position
-//		g2D.translate(-x1, -y1);
-		
+		// g2D.translate(-x1, -y1);
+
 		g.drawImage(buff, x1, y1, null);
+	}
+
+	public BufferedImage drawWalls(int x1, int y1, int x2, int y2) {
+		
+		System.out.println("top job");
+
+		BufferedImage buff = new BufferedImage(x2 - x1 + 1, y2 - y1 + 1,
+				BufferedImage.TYPE_INT_ARGB);
+
+		Graphics2D g2D = buff.createGraphics();
+		
+		double xScale = (x2 - x1) / (maze.getWidth() * 2 - 1.0);
+		double yScale = (y2 - y1) / (maze.getHeight() * 2 - 1.0);
+
+		double[][] scaleArray = { { xScale, 0 }, { 0, yScale } };
+		Matrix scaleTransform = new Matrix(scaleArray, scaleArray.length,
+				scaleArray[0].length);
+
+		ArrayList<Wall> scaledWalls = new ArrayList<Wall>();
+		for (Wall wall : mazeWalls) {
+			scaledWalls.add(new Wall(new Line(scaleTransform.multiply(wall
+					.getBase())), wall.getColor()));
+		}
+
+		// Add walls to path
+		Path2D.Float path = new Path2D.Float();
+		path.moveTo(0, 0);
+		for (Wall wall : scaledWalls) {
+			path.lineTo(wall.getBase().getX1(), wall.getBase().getY1());
+		}
+		path.lineTo(0, 0);
+
+		// Draw path
+		g2D.setColor(Color.BLACK);
+		g2D.draw(path);
+		g2D.setColor(new Color(255, 255, 255, 31));
+		g2D.fill(path);
+
+		return buff;
 	}
 
 	/**
@@ -676,6 +662,7 @@ public class FancyMaze3DComponent extends JComponent {
 	private Color goalColor;
 	private Color hintColor;
 	private BufferedImage fog;
+	private BufferedImage walls;
 
 	// Property change event thing
 	private PropertyChangeSupport pCS;
